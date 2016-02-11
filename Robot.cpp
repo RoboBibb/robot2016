@@ -1,26 +1,28 @@
-#include "Robot.h" 
+#include "Robot.h"
 
 Robot::Robot() : //inline initializations:
-    myRobot(0, 1), //left0, right1
-    gearShifter(0,1), shooterPiston(2,3), //solenoids
-    stick(0), //joystick controlled robot
-    airPump(0), //compressor
-    shooterElevator(2), //set elevation of the shooter
-	inAndOut(3), //shooter motors
+    	myRobot(0, 1), //left0, right1
+	gearShifter(0,1), shooterPiston(2,3), //solenoids
+	driveStick(0), shootStick(1), //they want 2 joysicks now
+	airPump(0), //compressor
+	shooterElevator(2), //set elevation of the shooter
+	inAndOut1(8), inAndOut2(9), //shooter motors
 	shooterUpLim(0), shooterDownLim(1), shooterInLim(5) //limit switches
 {
 	myRobot.SetExpiration(0.1);
 }
 
-//used to control a motors direction using 2 buttons (fwd & bkwd)
 
+//used to control a motors direction using 2 buttons (fwd & bkwd)
 // function template that allows control of any motor controller using 2 buttons.
 // Austin and Prem should also be able to understand (some of) this function...
 //ToDo: (in the future add a condition param)
 template <class MOTCTLR>
 void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const unsigned int& fwd, const unsigned int& bkwd){
-	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) motor.SetSpeed(0);
-	else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
+	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) 
+		motor.SetSpeed(0);
+	else if (joystick.GetRawButton(fwd)) 
+		motor.SetSpeed(1);
 	else motor.SetSpeed(-1); //bkwd
 }
 
@@ -91,48 +93,53 @@ void Robot::TeleopInit(){
 void Robot::TeleopPeriodic(){
 
 	//"all of these could be parallel processes."
-	// -LabVIEW
+	// -LabVIEW (2014-2015 RIP)
 
 	//drive the robot
-	myRobot.ArcadeDrive( -stick.GetY(), -stick.GetX(), true);
+	myRobot.ArcadeDrive( -driveStick.GetY(), -driveStick.GetX(), false);
 
 	//shift gears as according to buttons 11 & 12 (adjust upon request)
-	if (stick.GetRawButton(11) && m_isHighGear) {
+	if (driveStick.GetRawButton(11) && m_isHighGear) {
 		gearShifter.Set(DoubleSolenoid::Value::kForward);
 		std::cout <<"Low Gear\n";
 		m_isHighGear = !m_isHighGear;
-	} else if (stick.GetRawButton(12) && !m_isHighGear) {
+	} else if (driveStick.GetRawButton(12) && !m_isHighGear) {
 		gearShifter.Set(DoubleSolenoid::Value::kReverse);
 		std::cout <<"High Gear\n";
 		m_isHighGear = !m_isHighGear;
 	}
 
 	//sebastian wants to test using a piston for the shooter
-	if (stick.GetTrigger() && !stick.GetRawButton(2)) // fire the shooter
+	if (shootStick.GetTrigger() && !shootStick.GetRawButton(2)) // fire the shooter
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
-	else if (stick.GetTrigger() && stick.GetRawButton(2))
+	else if (shootStick.GetTrigger() && shootStick.GetRawButton(2))
 		std::cout <<"Warning: you cannot shoot and suck at the same time.\n";
 	else shooterPiston.Set(DoubleSolenoid::Value::kForward);
 
 	//adjust shooter's vertical angle
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
-	if ((stick.GetRawButton(4) && shooterUpLim.Get()) != (stick.GetRawButton(6) && shooterDownLim.Get()))
-		setMotorDirection(shooterElevator, stick, 4, 6);
+	if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
+		setMotorDirection(shooterElevator, shootStick, 3, 5);
 	else //stop the motor if it isn't safe
 		shooterElevator.SetSpeed(0);
 
 	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
-	if ((stick.GetRawButton(2) && shooterInLim.Get()) || stick.GetRawButton(3))
-		setMotorDirection(inAndOut, stick, 3, 2); //set intake/fire
-	else inAndOut.SetSpeed(0);
+	if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+			setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
+	else inAndOut2.SetSpeed(0);
+
+    //this is because they want the colors to match on the motors
+	if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+		setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
+	else inAndOut2.SetSpeed(0);
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
 	/// this code makes it only print once for each time the trigger is pressed
-	if (m_kobe && stick.GetTrigger()) {
+	if (m_kobe && shootStick.GetTrigger()) {
 		std::cout <<"Kobe!!\n";
 		m_kobe = false;
-	} else if (!stick.GetTrigger()) {
+	} else if (!shootStick.GetTrigger()) {
 		m_kobe = true;
 	}
 }
