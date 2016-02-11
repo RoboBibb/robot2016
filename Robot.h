@@ -16,7 +16,7 @@
  * - KISS = Keep It Simple Stupid
  * - Don't change something that will work unless performance would be improved. (even so, remember KISS)
  */
-//I could probably use pragma once... 
+//I could probably use pragma once...
 #ifndef ROBOT_H
 #define ROBOT_H
 
@@ -32,9 +32,9 @@ private:
     //robot parts (initialized by constructor):
     RobotDrive myRobot; // drive train
 	DoubleSolenoid gearShifter, shooterPiston; //piston used to switch gears
-	Joystick stick; // only 1 joystick (for now)
+	Joystick driveStick, shootStick; // only 1 joystick (for now)
 	Compressor airPump;
-	Talon shooterElevator, inAndOut;
+	Talon shooterElevator, inAndOut1, inAndOut2;
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
 
 	//member variables:
