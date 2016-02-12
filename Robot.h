@@ -36,6 +36,7 @@ private:
 	Compressor airPump;
 	Talon shooterElevator, inAndOut1, inAndOut2;
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
+	Ultrasonic sonar;
 
 	//member variables:
 	bool m_kobe = 1, m_isHighGear = 0;
@@ -43,13 +44,24 @@ private:
 	//these are for the autonomous code chooser (smart-dashboard integration)
 	LiveWindow *lw = LiveWindow::GetInstance();
 	SendableChooser *chooser = new SendableChooser();
-	const std::string autoNameDefault = "Default";
-	const std::string autoNameCustom1 = "Auto-Code1";
+	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
+	const std::string autoLowBar = "go under the low bar (Dont use)";
+	const std::string autoSeeSaws  = "go over the see-saws (Dont use)";
 	std::string autoSelected;
 
 	//custom function(s)
 	template <typename MOT>
 	void setMotorDirection(MOT &motor, Joystick &joystick, const unsigned int& fwd, const unsigned int& bkwd);
+
+	template <class MOTCTLR>
+	void Robot::controlMotor(
+			MOTCTLR& motor, //a reference to the motor controller
+			Joystick& joystick, //the joystick to use
+			const uint8_t& fwd, //forward button number
+			const uint8_t& bkwd, //backward button number
+			const bool& condition = true, //the safety condition
+			const double& multiplier = 1
+	);
 
 	//inherited from IterativeRobot
 	void RobotInit(); //run once on startup
