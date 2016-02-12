@@ -1,35 +1,55 @@
 #include "Robot.h"
 
 Robot::Robot() : //inline initializations:
-    	myRobot(0, 1), //left0, right1
-	gearShifter(0,1), shooterPiston(2,3), //solenoids
+    myRobot(0, 1), //left0, right1
+    gearShifter(0,1), shooterPiston(2,3), //solenoids
 	driveStick(0), shootStick(1), //they want 2 joysicks now
-	airPump(0), //compressor
-	shooterElevator(2), //set elevation of the shooter
-	inAndOut1(8), inAndOut2(9), //shooter motors
-	shooterUpLim(0), shooterDownLim(1), shooterInLim(5) //limit switches
+    airPump(0), //compressor
+    shooterElevator(2), //set elevation of the shooter
+    inAndOut1(8), inAndOut2(9), //shooter motors
+	shooterUpLim(0), shooterDownLim(1), shooterInLim(5), //limit switches
+	sonar(2, 2) //ultrasonic range-finder
 {
-	myRobot.SetExpiration(0.1);
+	myRobot.SetExpiration(0.1); //robot drive expiration rate
 }
-
 
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 // function template that allows control of any motor controller using 2 buttons.
-// Austin and Prem should also be able to understand (some of) this function...
 //ToDo: (in the future add a condition param)
 template <class MOTCTLR>
 void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const unsigned int& fwd, const unsigned int& bkwd){
-	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) 
+	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) //both buttons pressed or neither pressed.
 		motor.SetSpeed(0);
-	else if (joystick.GetRawButton(fwd)) 
-		motor.SetSpeed(1);
+	else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
 	else motor.SetSpeed(-1); //bkwd
+}
+
+template <class MOTCTLR>
+void Robot::controlMotor(
+		MOTCTLR& motor, //a reference to the motor controller
+		Joystick& joystick, //the joystick to use
+		const uint8_t& fwd, //forward button number
+		const uint8_t& bkwd, //backward button number
+		const bool& condition = true, //the safety condition
+		const double& multiplier = 1 //make the motor run at partial power
+){
+	//multiplier can only decrease the value and/or reverse direction
+	if (multiplier > 1 || multiplier < -1) multiplier = 1;
+	if (condition) { //only move if safe
+		// don't move if both buttons pressed or neither pressed.
+		if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd))
+			motor.SetSpeed(0);
+		else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
+		else motor.SetSpeed(-1); //bkwd
+
+	} else motor.SetSpeed(0); //not safe: don't move.
 }
 
 void Robot::RobotInit(){
 	//setup the auto-chooser:
-	chooser->AddDefault(autoNameDefault, (void*)&autoNameDefault);
-	chooser->AddObject(autoNameCustom1, (void*)&autoNameCustom1);
+	chooser->AddDefault(autoStopAtObstacle, (void*)&autoStopAtObstacle);
+	chooser->AddObject(autoLowBar, (void*)&autoLowBar);
+	chooser->AddObject(autoSeeSaws, (void*)&autoSeeSaws);
 
 	SmartDashboard::PutData("Auto Modes", chooser);
 
@@ -52,29 +72,37 @@ void Robot::AutonomousInit(){
 	airPump.SetClosedLoopControl(true);
 
     //auto-choosing code
-	autoSelected = *((std::string*)chooser->GetSelected());
-	//std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoNameDefault); //use this for labview drive station
+	//autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
+	std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
 
 	//print the chosen autonomous code to the terminal
 	std::cout <<"Autonomous has started...\nAuto selected: " <<autoSelected <<"\n";
 
-	//run selected autonomous code
-	if (autoSelected == autoNameCustom1) {
-		//Custom Auto goes here
-	} else {
+	//not quite sure what this does... but it's needed.
+	sonar.SetAutomaticMode(true); // turns on automatic mode
+
+	if (autoSelected == autoLowBar) {
+		//autonomous code to go through the low bar
+	} else if (autoSelected == autoSeeSaws) {
+		//autonomous code to go over the see-saws
+	} else {//default autonomous code
+
 		//Default Auto goes here
 	}
 }
 
 void Robot::AutonomousPeriodic(){
-	if (autoSelected == autoNameCustom1) {
-		//Custom Auto goes here
-	} else {
-		//Default Auto goes here
+	if (autoSelected == autoLowBar) {
+		//autonomous code to go through the low bar
+	} else if (autoSelected == autoSeeSaws) {
+		//autonomous code to go over the see-saws
+	} else {//default autonomous code
 
-		///The simplest (lame) autonomous code
-		// if (NO_OBSTACLES_IN_THE_WAY) DRIVE FORWARD
-		// else STOP
+		//dirve forward and stop 3 feet in front of the vertical obstacle.
+		//the robot and field are built in inches, so it's probably best not to use metric :(
+		if (sonar.GetRangeInches() > (3 * 12))
+			myRobot.ArcadeDrive(0f, -0.25f); //function takes floats as parameters
+		else myRobot.ArcadeDrive(0f, 0f);
 	}
 }
 
@@ -91,10 +119,6 @@ void Robot::TeleopInit(){
 }
 
 void Robot::TeleopPeriodic(){
-
-	//"all of these could be parallel processes."
-	// -LabVIEW (2014-2015 RIP)
-
 	//drive the robot
 	myRobot.ArcadeDrive( -driveStick.GetY(), -driveStick.GetX(), false);
 
@@ -119,20 +143,13 @@ void Robot::TeleopPeriodic(){
 	//adjust shooter's vertical angle
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
-	if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
-		setMotorDirection(shooterElevator, shootStick, 3, 5);
-	else //stop the motor if it isn't safe
-		shooterElevator.SetSpeed(0);
+	controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get())));
 
 	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
-	if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-			setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
-	else inAndOut2.SetSpeed(0);
+	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)))
 
     //this is because they want the colors to match on the motors
-	if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-		setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
-	else inAndOut2.SetSpeed(0);
+	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)));
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
 	/// this code makes it only print once for each time the trigger is pressed
@@ -148,6 +165,6 @@ void Robot::TestInit(){
 	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)"; //as though there was a purpose for testing mode...
 }
 
-void Robot::TestPeriodic(){	lw->Run(); }
+void Robot::TestPeriodic(){ lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
