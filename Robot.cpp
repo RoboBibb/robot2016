@@ -1,17 +1,18 @@
 #include "Robot.h"
 
 Robot::Robot() : //inline initializations:
-    myRobot(0, 1), //left0, right1
-    gearShifter(0,1), shooterPiston(2,3), //solenoids
+	myRobot(0, 1), //left0, right1
+	gearShifter(0,1), shooterPiston(2,3), //solenoids
 	driveStick(0), shootStick(1), //they want 2 joysicks now
-    airPump(0), //compressor
-    shooterElevator(2), //set elevation of the shooter
-    inAndOut1(8), inAndOut2(9), //shooter motors
+	airPump(0), //compressor
+	shooterElevator(2), //set elevation of the shooter
+	inAndOut1(8), inAndOut2(9), //shooter motors
 	shooterUpLim(0), shooterDownLim(1), shooterInLim(5), //limit switches
 	sonar(2, 2) //ultrasonic range-finder
 {
 	myRobot.SetExpiration(0.1); //robot drive expiration rate
 }
+
 
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 // function template that allows control of any motor controller using 2 buttons.
@@ -144,12 +145,24 @@ void Robot::TeleopPeriodic(){
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
 	controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get())));
+	/*if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
+		setMotorDirection(shooterElevator, shootStick, 3, 5);
+	else //stop the motor if it isn't safe
+		shooterElevator.SetSpeed(0);*/
 
 	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
-	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)))
+	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+			setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
+	else inAndOut2.SetSpeed(0);*/
 
     //this is because they want the colors to match on the motors
 	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+		setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
+	else inAndOut2.SetSpeed(0);*/
+
+
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
 	/// this code makes it only print once for each time the trigger is pressed
@@ -165,6 +178,6 @@ void Robot::TestInit(){
 	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)"; //as though there was a purpose for testing mode...
 }
 
-void Robot::TestPeriodic(){ lw->Run(); }
+void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
