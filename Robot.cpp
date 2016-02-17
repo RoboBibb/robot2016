@@ -83,9 +83,39 @@ void Robot::AutonomousInit(){
 	sonar.SetAutomaticMode(true); // turns on automatic mode
 
 	if (autoSelected == autoLowBar) {
-		//autonomous code to go through the low bar
+		//drive until the low bar flap thing
+		while (sonar.GetRangeInches() < (3 * 12)) {
+			myRobot.ArcadeDrive(0f, -0.5f);
+		}
+		//drive through the low-bar
+		myRobot.ArcadeDrive(0f, -0.25f);
+		Wait(5);
+
+		//drive until the wall on the other side
+		while (sonar.GetRangeInches() < (3 * 12)) {
+			myRobot.ArcadeDrive(0f, -0.5f);
+		}
+
+		//turn approximatly 90 degrees right. (towards goal)
+		Talon leftDriveMotors_temp(0);
+		leftDriveMotors_temp.SetSpeed(0.25);
+		Wait(0.5);	//adjust wait period
+
+		/// drive up to the goal
+		while (sonar.GetRangeInches() < (3 * 12)) {
+			myRobot.ArcadeDrive(0f, -0.5f);
+		}
+
+		
+		/// shoot ball into the goal
+		
+		
+		myRobot.ArcadeDrive(0f, 0f);
+
 	} else if (autoSelected == autoSeeSaws) {
 		//autonomous code to go over the see-saws
+
+
 	} else {//default autonomous code
 
 		//Default Auto goes here
