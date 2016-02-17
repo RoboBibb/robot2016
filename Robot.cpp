@@ -178,6 +178,6 @@ void Robot::TestInit(){
 	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)"; //as though there was a purpose for testing mode...
 }
 
-void Robot::TestPeriodic(){lw->Run(); }
+void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
