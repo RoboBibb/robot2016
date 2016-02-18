@@ -83,33 +83,36 @@ void Robot::AutonomousInit(){
 	sonar.SetAutomaticMode(true); // turns on automatic mode
 
 	if (autoSelected == autoLowBar) {
-		//drive until the low bar flap thing
-		while (sonar.GetRangeInches() < (3 * 12)) {
-			myRobot.ArcadeDrive(0f, -0.5f);
-		}
-		//drive through the low-bar
+		// drive until the low bar flap thing
+		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
+		// drive through the low-bar
 		myRobot.ArcadeDrive(0f, -0.25f);
 		Wait(5);
 
-		//drive until the wall on the other side
-		while (sonar.GetRangeInches() < (3 * 12)) {
-			myRobot.ArcadeDrive(0f, -0.5f);
-		}
+		// drive until the wall on the other side
+		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
 
-		//turn approximatly 90 degrees right. (towards goal)
+		// turn approximatly 90 degrees right. (towards goal)
 		Talon leftDriveMotors_temp(0);
 		leftDriveMotors_temp.SetSpeed(0.25);
 		Wait(0.5);	//adjust wait period
 
-		/// drive up to the goal
-		while (sonar.GetRangeInches() < (3 * 12)) {
-			myRobot.ArcadeDrive(0f, -0.5f);
-		}
+		// start spinning the shooter
+		inAndOut1.SetSpeed(1);
+		inAndOut2.SetSpeed(1);
+		Wait(0.75);
 
-		
-		/// shoot ball into the goal
-		
-		
+		// drive up to the goal
+		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
+
+		// shoot the ball [into the goal].
+		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
+
+		// stop spinning the shooter
+		inAndOut1.SetSpeed(0		);
+		inAndOut2.SetSpeed(0);
+
+
 		myRobot.ArcadeDrive(0f, 0f);
 
 	} else if (autoSelected == autoSeeSaws) {
@@ -130,7 +133,7 @@ void Robot::AutonomousPeriodic(){
 	} else {//default autonomous code
 
 		//dirve forward and stop 3 feet in front of the vertical obstacle.
-		//the robot and field are built in inches, so it's probably best not to use metric :(
+		//the robot and field are built in inches, so it's probably best not to use metric =(
 		if (sonar.GetRangeInches() > (3 * 12))
 			myRobot.ArcadeDrive(0f, -0.25f); //function takes floats as parameters
 		else myRobot.ArcadeDrive(0f, 0f);
@@ -174,20 +177,20 @@ void Robot::TeleopPeriodic(){
 	//adjust shooter's vertical angle
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
-	controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get())));
+	controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
 	/*if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
 		setMotorDirection(shooterElevator, shootStick, 3, 5);
 	else //stop the motor if it isn't safe
 		shooterElevator.SetSpeed(0);*/
 
 	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
-	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
 	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
 			setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
 	else inAndOut2.SetSpeed(0);*/
 
     //this is because they want the colors to match on the motors
-	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
 	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
 		setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
 	else inAndOut2.SetSpeed(0);*/
