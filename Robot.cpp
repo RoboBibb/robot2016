@@ -1,5 +1,10 @@
 #include "Robot.h"
 
+#define STOPPING_DISTANCE_INCHES 36 // 3 feet
+
+
+
+
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
@@ -84,42 +89,49 @@ void Robot::AutonomousInit(){
 
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
-		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
+			myRobot.ArcadeDrive(0f, -0.5f);
+
 		// drive through the low-bar
 		myRobot.ArcadeDrive(0f, -0.25f);
 		Wait(5);
 
 		// drive until the wall on the other side
-		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
+			myRobot.ArcadeDrive(0f, -0.5f);
 
 		// turn approximatly 90 degrees right. (towards goal)
 		Talon leftDriveMotors_temp(0);
 		leftDriveMotors_temp.SetSpeed(0.25);
 		Wait(0.5);	//adjust wait period
 
+		// start driving forward again
+		myRobot.ArcadeDrive(0.5f, 0.5f);
+
 		// start spinning the shooter
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
-		Wait(0.75);
+		//Wait(0.75);
 
 		// drive up to the goal
-		while (sonar.GetRangeInches() < (3 * 12)) myRobot.ArcadeDrive(0f, -0.5f);
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
+			myRobot.ArcadeDrive(0f, -0.5f);
 
 		// shoot the ball [into the goal].
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
 
 		// stop spinning the shooter
-		inAndOut1.SetSpeed(0		);
+		inAndOut1.SetSpeed(0);
 		inAndOut2.SetSpeed(0);
 
-
+		// stop moving (wait until tele-op starts)
 		myRobot.ArcadeDrive(0f, 0f);
 
 	} else if (autoSelected == autoSeeSaws) {
-		//autonomous code to go over the see-saws
+		// autonomous code to go over the see-saws
 
 
-	} else {//default autonomous code
+	} else { //default autonomous code
 
 		//Default Auto goes here
 	}
@@ -134,9 +146,10 @@ void Robot::AutonomousPeriodic(){
 
 		//dirve forward and stop 3 feet in front of the vertical obstacle.
 		//the robot and field are built in inches, so it's probably best not to use metric =(
-		if (sonar.GetRangeInches() > (3 * 12))
-			myRobot.ArcadeDrive(0f, -0.25f); //function takes floats as parameters
-		else myRobot.ArcadeDrive(0f, 0f);
+		if (sonar.GetRangeInches() > STOPPING_DISTANCE_INCHES)
+			myRobot.ArcadeDrive(0f, -0.25f);
+		else
+			myRobot.ArcadeDrive(0f, 0f);
 	}
 }
 
