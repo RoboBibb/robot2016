@@ -1,13 +1,4 @@
 /**
- * What the code does:
- * - Multiple autonomous codes. It should work.
- * - uses a robotDrive object to move the robot using tank drive based off input from the joystick
- * - reports video feed from a USB camera to the smartdashboard
- * - fills the air tank using the compressor's member function "SetClosedLoopControl()"
- * - setMotorDirection() member function to control a motor using 2 buttons.
- * - prints kobe to terminal when trigger pulled
- * - switches gears using buttons 11 & 12
- *
  *Rules for editing:
  * - put a comment with your name stating what you have changed so that I can make the changes to the actual code.
  * - I recommend you install eclipse to take full advantage of it's syntax highlighting, error detection, and integrated documentation. if you need a text editor.
@@ -16,11 +7,13 @@
  * - KISS = Keep It Simple Stupid
  * - Don't change something that will work unless performance would be improved. (even so, remember KISS)
  */
-//I could probably use pragma once...
+
 #ifndef ROBOT_H
 #define ROBOT_H
 
 #include "WPILib.h"
+#include <cinttypes> //already included in WPILib...
+
 
 class Robot: public IterativeRobot{
 
