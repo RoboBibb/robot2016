@@ -2,6 +2,9 @@
 
 #define STOPPING_DISTANCE_INCHES 36 // 3 feet
 
+
+
+
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
@@ -172,11 +175,11 @@ void Robot::TeleopPeriodic(){
 	myRobot.ArcadeDrive( -driveCtl.GetRawAxis(2), -driveCtl.GetRawAxis(1), false);
 
 	//shift gears a==low b==high
-	if (driveCtl.GetRawButton(1) && m_isHighGear) {
+	if (driveCtl.GetRawButton(1) && m_isHighGear) { // a
 		gearShifter.Set(DoubleSolenoid::Value::kForward);
 		std::cout <<"Low Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
-	} else if (driveCtl.GetRawButton(2) && !m_isHighGear) {
+	} else if (driveCtl.GetRawButton(2) && !m_isHighGear) { // b
 		gearShifter.Set(DoubleSolenoid::Value::kReverse);
 		std::cout <<"High Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
@@ -225,17 +228,27 @@ void Robot::TeleopPeriodic(){
 		inAndOut2.SetSpeed(0);
 	}
 
-	//We're using a piston for the shooter
+	// We're using a piston for the shooter :P
 	if (shootCtl.GetTrigger() > 0.9f) // fire the shooter
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
 	else shooterPiston.Set(DoubleSolenoid::Value::kForward); //retract the shooter
 
-	//rumble both controllers when firing
+	// rumble both controllers when firing and when switching gears.
 	if (shootCtl.GetTrigger() > 0.9f) {
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1f);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1f);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1f);
 		shootCtl.SetRumble(shootCtl.kRightRumble, 1f);
+	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) {
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1f);
+	} else { // no rumble
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 0f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 0f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 0f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 0f);
 	}
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
