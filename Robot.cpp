@@ -2,18 +2,17 @@
 
 #define STOPPING_DISTANCE_INCHES 36 // 3 feet
 
-
-
-
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
-	driveStick(0), shootStick(1), //they want 2 joysicks now
+	driveCtl(0), shootCtl(1), //they want 2 joysicks now
 	airPump(0), //compressor
 	shooterElevator(2), //set elevation of the shooter
 	inAndOut1(8), inAndOut2(9), //shooter motors
-	shooterUpLim(0), shooterDownLim(1), shooterInLim(5), //limit switches
-	sonar(2, 2) //ultrasonic range-finder
+	shooterUpLim(0), shooterDownLim(1), shooterInLim(5), //limit switches (not removing them yet...)
+	sonar(2, 2), //ultrasonic range-finder
+	/// they want potentiometers instead of limit switches :(
+	shooterArmPot(0/*Analog input port number*/, 90/*degrees of rotation*/, 0/*initial rotation*/)
 {
 	myRobot.SetExpiration(0.1); //robot drive expiration rate
 }
@@ -74,18 +73,21 @@ void Robot::RobotInit(){
  * If using the SendableChooser make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit(){
-	//start filling the tank
+	// start filling the tank
 	airPump.SetClosedLoopControl(true);
 
-    //auto-choosing code
-	//autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
+    // auto-choosing code
+	// autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
 	std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
 
-	//print the chosen autonomous code to the terminal
+	// print the chosen autonomous code to the terminal
 	std::cout <<"Autonomous has started...\nAuto selected: " <<autoSelected <<"\n";
 
-	//not quite sure what this does... but it's needed.
+	// not quite sure what this does... but it's needed.
 	sonar.SetAutomaticMode(true); // turns on automatic mode
+
+	// disable safety on drive-train
+	myRobot.SetSafetyEnabled(false);
 
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
@@ -160,68 +162,95 @@ void Robot::TeleopInit(){
 	//tele-op has started.
 	std::cout <<"Teleop has started...\n";
 
-	//start out in low gear (50% CHANCE OF BEING CORRECT)
-	gearShifter.Set(DoubleSolenoid::Value::kReverse);
+	//start out in low gear
+	gearShifter.Set(DoubleSolenoid::Value::kForward);
 
 }
 
 void Robot::TeleopPeriodic(){
 	//drive the robot
-	myRobot.ArcadeDrive( -driveStick.GetY(), -driveStick.GetX(), false);
+	myRobot.ArcadeDrive( -driveCtl.GetRawAxis(2), -driveCtl.GetRawAxis(1), false);
 
-	//shift gears as according to buttons 11 & 12 (adjust upon request)
-	if (driveStick.GetRawButton(11) && m_isHighGear) {
+	//shift gears a==low b==high
+	if (driveCtl.GetRawButton(1) && m_isHighGear) {
 		gearShifter.Set(DoubleSolenoid::Value::kForward);
-		std::cout <<"Low Gear\n";
+		std::cout <<"Low Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
-	} else if (driveStick.GetRawButton(12) && !m_isHighGear) {
+	} else if (driveCtl.GetRawButton(2) && !m_isHighGear) {
 		gearShifter.Set(DoubleSolenoid::Value::kReverse);
-		std::cout <<"High Gear\n";
+		std::cout <<"High Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
 	}
 
-	//sebastian wants to test using a piston for the shooter
-	if (shootStick.GetTrigger() && !shootStick.GetRawButton(2)) // fire the shooter
-		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
-	else if (shootStick.GetTrigger() && shootStick.GetRawButton(2))
-		std::cout <<"Warning: you cannot shoot and suck at the same time.\n";
-	else shooterPiston.Set(DoubleSolenoid::Value::kForward);
-
-	//adjust shooter's vertical angle
+	/*adjust shooter's vertical angle
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
-	controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
-	/*if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
-		setMotorDirection(shooterElevator, shootStick, 3, 5);
-	else //stop the motor if it isn't safe
-		shooterElevator.SetSpeed(0);*/
+	/// controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
+	//if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
+	//	setMotorDirection(shooterElevator, shootStick, 3, 5);
+	//else //stop the motor if it isn't safe
+	//	shooterElevator.SetSpeed(0);*/
 
+	/* These two blobs serve the same purpose.
 	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
 	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
-	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-			setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
-	else inAndOut2.SetSpeed(0);*/
+	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+	//		setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
+	//else inAndOut2.SetSpeed(0);
 
-    //this is because they want the colors to match on the motors
+    //this is because they want the wire-colors to match on the motors
 	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
-	/*if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-		setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
-	else inAndOut2.SetSpeed(0);*/
+	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+	//	setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
+	//else inAndOut2.SetSpeed(0);
+	*/
+
+	// adjust shooter's vertical elevation using the D-pad
+	if (shootCtl.GetPOV() == 0 && shooterArmPot.Get() <= 75) // D-pad up
+		shooterElevator.SetSpeed(1);
+	else if(shootCtl.GetPOV() == 180 && shooterArmPot.Get() >= 0) // D-pad down
+		shooterElevator.SetSpeed(-1);
+	else shooterElevator.SetSpeed(0);
 
 
+	//intake and pre-fire controls
+	if (shootCtl.GetTrigger() > 0f){ //pre-shoot
+		inAndOut1.SetSpeed(1);
+		inAndOut2.SetSpeed(1);
+	} else if (shootCtl.GetTrigger() < 0f){ // intake
+		inAndOut1.SetSpeed(-1);
+		inAndOut2.SetSpeed(-1);
+	} else {
+		inAndOut1.SetSpeed(0);
+		inAndOut2.SetSpeed(0);
+	}
+
+	//We're using a piston for the shooter
+	if (shootCtl.GetTrigger() > 0.9f) // fire the shooter
+		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
+	else shooterPiston.Set(DoubleSolenoid::Value::kForward); //retract the shooter
+
+	//rumble both controllers when firing
+	if (shootCtl.GetTrigger() > 0.9f) {
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1f);
+	}
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
 	/// this code makes it only print once for each time the trigger is pressed
-	if (m_kobe && shootStick.GetTrigger()) {
-		std::cout <<"Kobe!!\n";
+	if (m_kobe && shootCtl.GetTrigger() > 0.9f) {
+		std::cout <<"Kobe!!" <<std::endl;
 		m_kobe = false;
-	} else if (!shootStick.GetTrigger()) {
+	} else if (shootCtl.GetTrigger() <= 0.9f) {
 		m_kobe = true;
 	}
+
 }
 
 void Robot::TestInit(){
-	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)"; //as though there was a purpose for testing mode...
+	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl;
 }
 
 void Robot::TestPeriodic(){	lw->Run(); }
