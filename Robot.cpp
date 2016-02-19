@@ -23,7 +23,6 @@ Robot::Robot() : //inline initializations:
 
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 // function template that allows control of any motor controller using 2 buttons.
-//ToDo: (in the future add a condition param)
 template <class MOTCTLR>
 void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const unsigned int& fwd, const unsigned int& bkwd){
 	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) //both buttons pressed or neither pressed.
@@ -62,8 +61,8 @@ void Robot::RobotInit(){
 	SmartDashboard::PutData("Auto Modes", chooser);
 
 	//get camera feed and post it to the smartdashboard (*NOTE: disabled until we get a camera)
-	//CameraServer::GetInstance()->SetQuality(50);
-	//CameraServer::GetInstance()->StartAutomaticCapture("cam0");//get camera name (cam0) from the roborio web interface
+	CameraServer::GetInstance()->SetQuality(50);
+	CameraServer::GetInstance()->StartAutomaticCapture("cam0");// camera name in the web interface
 
 }
 /**Notes on autonomous chooing code:
@@ -135,7 +134,11 @@ void Robot::AutonomousInit(){
 	} else if (autoSelected == autoSeeSaws) {
 		// autonomous code to go over the see-saws
 
-
+		//TODO:
+		/// drive up to the see-saws
+		/// use the shooter to lower the see-saws
+		/// drive over the see-saws
+		/// proceed to emulate the fuction(s) of the low-bar autonomous code.
 	} else { //default autonomous code
 
 		//Default Auto goes here
