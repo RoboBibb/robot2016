@@ -15,7 +15,7 @@
 #include <cinttypes> //already included in WPILib...
 
 
-class Robot: public IterativeRobot{
+class Robot final: public IterativeRobot{
 
 public:
     Robot(); //constructor must be public
@@ -25,11 +25,12 @@ private:
     //robot parts (initialized by constructor):
     RobotDrive myRobot; // drive train
 	DoubleSolenoid gearShifter, shooterPiston; //piston used to switch gears
-	Joystick driveStick, shootStick; // only 1 joystick (for now)
+	Joystick driveCtl, shootCtl; // only 1 joystick (for now)
 	Compressor airPump;
 	Talon shooterElevator, inAndOut1, inAndOut2;
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
 	Ultrasonic sonar;
+	Potentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
 
 	//member variables:
 	bool m_kobe = 1, m_isHighGear = 0;
