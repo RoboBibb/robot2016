@@ -15,7 +15,7 @@
 #include <cinttypes> //already included in WPILib...
 
 
-class Robot final: public IterativeRobot{
+class Robot: public IterativeRobot{
 
 public:
     Robot(); //constructor must be public
@@ -30,7 +30,7 @@ private:
 	Talon shooterElevator, inAndOut1, inAndOut2;
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
 	Ultrasonic sonar;
-	Potentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
+	AnalogPotentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
 
 	//member variables:
 	bool m_kobe = 1, m_isHighGear = 0;
