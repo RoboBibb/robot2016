@@ -3,8 +3,6 @@
 #define STOPPING_DISTANCE_INCHES 36 // 3 feet
 
 
-
-
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
@@ -37,8 +35,8 @@ void Robot::controlMotor(
 		Joystick& joystick, //the joystick to use
 		const uint8_t& fwd, //forward button number
 		const uint8_t& bkwd, //backward button number
-		const bool& condition = true, //the safety condition
-		const double& multiplier = 1 //make the motor run at partial power
+		const bool& condition, //the safety condition
+		const double& multiplier //make the motor run at partial power
 ){
 	//multiplier can only decrease the value and/or reverse direction
 	if (multiplier > 1 || multiplier < -1) multiplier = 1;
@@ -94,15 +92,15 @@ void Robot::AutonomousInit(){
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
-			myRobot.ArcadeDrive(0f, -0.5f);
+			myRobot.ArcadeDrive(0, -0.5f);
 
 		// drive through the low-bar
-		myRobot.ArcadeDrive(0f, -0.25f);
+		myRobot.ArcadeDrive(0, -0.25f);
 		Wait(5);
 
 		// drive until the wall on the other side
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
-			myRobot.ArcadeDrive(0f, -0.5f);
+			myRobot.ArcadeDrive(0, -0.5f);
 
 		// turn approximatly 90 degrees right. (towards goal)
 		Talon leftDriveMotors_temp(0);
@@ -119,7 +117,7 @@ void Robot::AutonomousInit(){
 
 		// drive up to the goal
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
-			myRobot.ArcadeDrive(0f, -0.5f);
+			myRobot.ArcadeDrive(0, -0.5f);
 
 		// shoot the ball [into the goal].
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
@@ -129,7 +127,7 @@ void Robot::AutonomousInit(){
 		inAndOut2.SetSpeed(0);
 
 		// stop moving (wait until tele-op starts)
-		myRobot.ArcadeDrive(0f, 0f);
+		myRobot.ArcadeDrive(0.0, 0.0);
 
 	} else if (autoSelected == autoSeeSaws) {
 		// autonomous code to go over the see-saws
@@ -155,9 +153,9 @@ void Robot::AutonomousPeriodic(){
 		//dirve forward and stop 3 feet in front of the vertical obstacle.
 		//the robot and field are built in inches, so it's probably best not to use metric =(
 		if (sonar.GetRangeInches() > STOPPING_DISTANCE_INCHES)
-			myRobot.ArcadeDrive(0f, -0.25f);
+			myRobot.ArcadeDrive(0, -0.25f);
 		else
-			myRobot.ArcadeDrive(0f, 0f);
+			myRobot.ArcadeDrive(0, 0.0f); // for some reason at least one value must be float....
 	}
 }
 
@@ -175,7 +173,7 @@ void Robot::TeleopInit(){
 
 void Robot::TeleopPeriodic(){
 	//drive the robot
-	myRobot.ArcadeDrive( -driveCtl.GetRawAxis(2), -driveCtl.GetRawAxis(1), false);
+	myRobot.ArcadeDrive(driveCtl.GetRawAxis(1), driveCtl.GetRawAxis(0), false);
 
 	//shift gears a==low b==high
 	if (driveCtl.GetRawButton(1) && m_isHighGear) { // a
@@ -203,7 +201,6 @@ void Robot::TeleopPeriodic(){
 	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
 	//		setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
 	//else inAndOut2.SetSpeed(0);
-
     //this is because they want the wire-colors to match on the motors
 	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
 	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
@@ -220,10 +217,10 @@ void Robot::TeleopPeriodic(){
 
 
 	//intake and pre-fire controls
-	if (shootCtl.GetTrigger() > 0f){ //pre-shoot
+	if (shootCtl.GetTrigger() > 0){ //pre-shoot
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
-	} else if (shootCtl.GetTrigger() < 0f){ // intake
+	} else if (shootCtl.GetTrigger() < 0){ // intake
 		inAndOut1.SetSpeed(-1);
 		inAndOut2.SetSpeed(-1);
 	} else {
@@ -238,20 +235,20 @@ void Robot::TeleopPeriodic(){
 
 	// rumble both controllers when firing and when switching gears.
 	if (shootCtl.GetTrigger() > 0.9f) {
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 1f);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 1f);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 1f);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 1f);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
 	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) {
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 1f);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 1f);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 1f);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 1f);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
 	} else { // no rumble
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 0f);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 0f);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 0f);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 0f);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 0);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 0);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 0);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 0);
 	}
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
