@@ -48,7 +48,7 @@ private:
 	void setMotorDirection(MOT &motor, Joystick &joystick, const unsigned int& fwd, const unsigned int& bkwd);
 
 	template <class MOTCTLR>
-	void Robot::controlMotor(
+	void controlMotor(
 			MOTCTLR& motor, //a reference to the motor controller
 			Joystick& joystick, //the joystick to use
 			const uint8_t& fwd, //forward button number
