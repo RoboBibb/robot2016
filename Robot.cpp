@@ -21,36 +21,6 @@ Robot::Robot() : //inline initializations:
 }
 
 
-//used to control a motors direction using 2 buttons (fwd & bkwd)
-// function template that allows control of any motor controller using 2 buttons.
-template <class MOTCTLR>
-void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const uint8_t& fwd, const uint8_t& bkwd){
-	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) //both buttons pressed or neither pressed.
-		motor.SetSpeed(0);
-	else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
-	else motor.SetSpeed(-1); //bkwd
-}
-
-template <class MOTCTLR>
-void Robot::controlMotor(
-		MOTCTLR& motor, //a reference to the motor controller
-		Joystick& joystick, //the joystick to use
-		const uint8_t& fwd, //forward button number
-		const uint8_t& bkwd, //backward button number
-		const bool& condition, //the safety condition
-		const double& multiplier //make the motor run at partial power
-){
-	//multiplier can only decrease the value and/or reverse direction
-	if (multiplier > 1 || multiplier < -1) multiplier = 1;
-	if (condition) { //only move if safe
-		// don't move if both buttons pressed or neither pressed.
-		if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd))
-			motor.SetSpeed(0);
-		else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
-		else motor.SetSpeed(-1); //bkwd
-
-	} else motor.SetSpeed(0); //not safe: don't move.
-}
 
 void Robot::RobotInit(){
 	//setup the auto-chooser:
@@ -191,7 +161,7 @@ void Robot::TeleopPeriodic(){
 	/*adjust shooter's vertical angle
 	/// the limits will likely have to be swapped (50% chance)
 	// if it's safe to move the motor, run the code to do so
-	/// controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
+	utils::controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
 	//if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
 	//	setMotorDirection(shooterElevator, shootStick, 3, 5);
 	//else //stop the motor if it isn't safe
@@ -204,7 +174,7 @@ void Robot::TeleopPeriodic(){
 	//		setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
 	//else inAndOut2.SetSpeed(0);
     //this is because they want the wire-colors to match on the motors
-	controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	utils::controlMotor(inAndOut2, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
 	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
 	//	setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
 	//else inAndOut2.SetSpeed(0);
@@ -219,10 +189,10 @@ void Robot::TeleopPeriodic(){
 
 
 	//intake and pre-fire controls
-	if (shootCtl.GetRawAxis(3)){ // pre-shoot
+	if (shootCtl.GetRawAxis(3) && !shootCtl.GetRawAxis(2)){ // pre-shoot
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
-	} else if (shootCtl.GetRawAxis(2)){ // intake
+	} else if (shootCtl.GetRawAxis(2) && !shootCtl.GetRawAxis(3)){ // intake
 		inAndOut1.SetSpeed(-1);
 		inAndOut2.SetSpeed(-1);
 	} else {
@@ -233,7 +203,7 @@ void Robot::TeleopPeriodic(){
 	// We're using a piston for the shooter :P
 	if (shootCtl.GetRawAxis(3) > 0.95f) // fire the shooter
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
-	else shooterPiston.Set(DoubleSolenoid::Value::kForward); //retract the shooter
+	else shooterPiston.Set(DoubleSolenoid::Value::kForward); // retract the shooter
 
 	// rumble both controllers when firing and when switching gears.
 	if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire
@@ -268,5 +238,6 @@ void Robot::TestInit(){
 }
 
 void Robot::TestPeriodic(){	lw->Run(); }
+
 
 START_ROBOT_CLASS(Robot)
