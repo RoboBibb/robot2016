@@ -11,8 +11,9 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include "WPILib.h"
 #include <inttypes.h> //The C library is better...
+#include "WPILib.h"
+#include "tateUtils.h"
 
 class Robot: public IterativeRobot{
 
@@ -42,19 +43,7 @@ private:
 	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
 	std::string autoSelected;
 
-	//custom function(s) to simplify code.
-	template <typename MOT>
-	void setMotorDirection(MOT &motor, Joystick &joystick, const unsigned int& fwd, const unsigned int& bkwd);
 
-	template <class MOTCTLR>
-	void controlMotor(
-			MOTCTLR& motor, //a reference to the motor controller
-			Joystick& joystick, //the joystick to use
-			const uint8_t& fwd, //forward button number
-			const uint8_t& bkwd, //backward button number
-			const bool& condition = true, //the safety condition
-			const double& multiplier = 1
-	);
 
 	//inherited from IterativeRobot
 	void RobotInit(); //run once on startup
@@ -71,7 +60,7 @@ private:
 	void DisabledInit(){
 		std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";
 	}
-	void DisabledPeriodic(){}
 };
+
 
 #endif
