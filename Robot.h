@@ -12,8 +12,7 @@
 #define ROBOT_H
 
 #include "WPILib.h"
-#include <cinttypes> //already included in WPILib...
-
+#include <inttypes.h> //The C library is better...
 
 class Robot: public IterativeRobot{
 
@@ -33,17 +32,17 @@ private:
 	AnalogPotentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
 
 	//member variables:
-	bool m_kobe = 1, m_isHighGear = 0;
+	bool m_kobe = true, m_isHighGear = false;
 
 	//these are for the autonomous code chooser (smart-dashboard integration)
 	LiveWindow *lw = LiveWindow::GetInstance();
 	SendableChooser *chooser = new SendableChooser();
 	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
-	const std::string autoLowBar = "go under the low bar (Dont use)";
-	const std::string autoSeeSaws  = "go over the see-saws (Dont use)";
+	const std::string autoLowBar = "go under low bar (might not work)";
+	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
 	std::string autoSelected;
 
-	//custom function(s)
+	//custom function(s) to simplify code.
 	template <typename MOT>
 	void setMotorDirection(MOT &motor, Joystick &joystick, const unsigned int& fwd, const unsigned int& bkwd);
 
