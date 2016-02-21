@@ -71,6 +71,7 @@ private:
 	void DisabledInit(){
 		std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";
 	}
+	void DisabledPeriodic(){}
 };
 
 #endif
