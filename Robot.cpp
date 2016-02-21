@@ -3,6 +3,8 @@
 #define STOPPING_DISTANCE_INCHES 36 // 3 feet
 
 
+
+
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
@@ -22,7 +24,7 @@ Robot::Robot() : //inline initializations:
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 // function template that allows control of any motor controller using 2 buttons.
 template <class MOTCTLR>
-void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const unsigned int& fwd, const unsigned int& bkwd){
+void Robot::setMotorDirection(MOTCTLR& motor, Joystick& joystick, const uint8_t& fwd, const uint8_t& bkwd){
 	if (joystick.GetRawButton(fwd) == joystick.GetRawButton(bkwd)) //both buttons pressed or neither pressed.
 		motor.SetSpeed(0);
 	else if (joystick.GetRawButton(fwd)) motor.SetSpeed(1);
@@ -77,8 +79,8 @@ void Robot::AutonomousInit(){
 	airPump.SetClosedLoopControl(true);
 
     // auto-choosing code
-	// autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
-	std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
+	autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
+	//std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
 
 	// print the chosen autonomous code to the terminal
 	std::cout <<"Autonomous has started...\nAuto selected: " <<autoSelected <<"\n";
@@ -173,7 +175,7 @@ void Robot::TeleopInit(){
 
 void Robot::TeleopPeriodic(){
 	//drive the robot
-	myRobot.ArcadeDrive(driveCtl.GetRawAxis(1), driveCtl.GetRawAxis(0), false);
+	myRobot.ArcadeDrive(-driveCtl.GetRawAxis(1), driveCtl.GetRawAxis(0), true);
 
 	//shift gears a==low b==high
 	if (driveCtl.GetRawButton(1) && m_isHighGear) { // a
@@ -217,10 +219,10 @@ void Robot::TeleopPeriodic(){
 
 
 	//intake and pre-fire controls
-	if (shootCtl.GetTrigger() > 0){ //pre-shoot
+	if (shootCtl.GetRawAxis(3)){ // pre-shoot
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
-	} else if (shootCtl.GetTrigger() < 0){ // intake
+	} else if (shootCtl.GetRawAxis(2)){ // intake
 		inAndOut1.SetSpeed(-1);
 		inAndOut2.SetSpeed(-1);
 	} else {
@@ -229,17 +231,17 @@ void Robot::TeleopPeriodic(){
 	}
 
 	// We're using a piston for the shooter :P
-	if (shootCtl.GetTrigger() > 0.9f) // fire the shooter
+	if (shootCtl.GetRawAxis(3) > 0.95f) // fire the shooter
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
 	else shooterPiston.Set(DoubleSolenoid::Value::kForward); //retract the shooter
 
 	// rumble both controllers when firing and when switching gears.
-	if (shootCtl.GetTrigger() > 0.9f) {
+	if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
 		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
-	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) {
+	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
@@ -252,18 +254,17 @@ void Robot::TeleopPeriodic(){
 	}
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
-	/// this code makes it only print once for each time the trigger is pressed
-	if (m_kobe && shootCtl.GetTrigger() > 0.9f) {
+	if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
 		std::cout <<"Kobe!!" <<std::endl;
 		m_kobe = false;
-	} else if (shootCtl.GetTrigger() <= 0.9f) {
+	} else if (shootCtl.GetRawAxis(3) <= 0.95f) {
 		m_kobe = true;
 	}
 
 }
 
 void Robot::TestInit(){
-	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl;
+	std::cout <<"Testing mode enabled...\nCurrently doing: {NULL}" <<std::endl;
 }
 
 void Robot::TestPeriodic(){	lw->Run(); }
