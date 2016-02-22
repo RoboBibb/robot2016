@@ -7,6 +7,10 @@
 
 #include "tateUtils.h"
 
+#ifndef ACCELEROMETER_TURNING_CONSTANT
+	#define ACCELEROMETER_TURNING_CONSTANT 2
+#endif
+
 
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 template <class MOTCTLR>
@@ -45,26 +49,43 @@ void utils::controlMotor(
 
 
 //uses an accelerometer to drive straight.
-void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, float seconds){
+void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, float seconds, const float& moveValue){
+	//changing order might increase runtime speed...
 	for (; seconds > 0; seconds-=0.050) {
-
-
-
+		switch (axis) {
+			case x: drive.Drive(moveValue, accel.GetX() * ACCELEROMETER_TURNING_CONSTANT);break;
+			case y: drive.Drive(moveValue, accel.GetY() * ACCELEROMETER_TURNING_CONSTANT);break;
+			case z: drive.Drive(moveValue, accel.GetZ() * ACCELEROMETER_TURNING_CONSTANT);break;
+			default: std::cerr <<"driveStraigt(): invalid axis given!"; //this should output the problem to the console
+		}
+		Wait(0.050);
 	}
 }
-void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, const bool& condition);
-void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, bool (*condition)(void));
+void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, bool (*condition)(void), const float& moveValue){
+	switch (axis) {
+		case x:
+				while (condition())
+					drive.Drive(moveValue, accel.GetX() * ACCELEROMETER_TURNING_CONSTANT);
+				break;
+		case y:
+				while (condition())
+					drive.Drive(moveValue, accel.GetY() * ACCELEROMETER_TURNING_CONSTANT);
+				break;
+		case z:
+				while (condition())
+					drive.Drive(moveValue, accel.GetZ() * ACCELEROMETER_TURNING_CONSTANT);
+				break;
+
+		default: std::cerr <<"driveStraigt(): invalid axis given!"; //this should output the problem to the console
+	}
+}
 
 //built-in accelerometer (call the others)
-void utils::driveStraignt(RobotDrive& drive, const Axis& axis, const float& seconds){
+void utils::driveStraignt(RobotDrive& drive, const Axis& axis, float seconds, const float& moveValue){
 	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
-	utils::driveStraight(drive, builtInAccel, axis, seconds);
+	utils::driveStraight(drive, builtInAccel, axis, seconds, moveValue);
 }
-void utils::driveStraight(RobotDrive& drive, const Axis& axis, const bool& condition){
+void utils::driveStraignt(RobotDrive& drive, const Axis& axis, bool (*condition)(void), const float& moveValue){
 	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
-	utils::driveStraight(drive, builtInAccel, axis, condition);
-}
-void utils::driveStraignt(RobotDrive& drive, const Axis& axis, bool (*condition)(void)){
-	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
-	utils::driveStraight(drive, builtInAccel, axis, condition);
+	utils::driveStraight(drive, builtInAccel, axis, condition, moveValue);
 }
