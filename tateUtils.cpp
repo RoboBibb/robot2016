@@ -1,16 +1,4 @@
-/*
- * tateUtils.cpp
- *
- *  Created on: 21/02/2016
- *      Author: tate
- */
-
 #include "tateUtils.h"
-
-#ifndef ACCELEROMETER_TURNING_CONSTANT
-	#define ACCELEROMETER_TURNING_CONSTANT 2
-#endif
-
 
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 template <class MOTCTLR>
@@ -58,7 +46,7 @@ void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& a
 			case z: drive.Drive(moveValue, accel.GetZ() * ACCELEROMETER_TURNING_CONSTANT);break;
 			default: std::cerr <<"driveStraigt(): invalid axis given!"; //this should output the problem to the console
 		}
-		Wait(0.050);
+		Wait(0.050); // 50mili-seconds refresh-rate
 	}
 }
 void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, bool (*condition)(void), const float& moveValue){
@@ -81,11 +69,11 @@ void utils::driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& a
 }
 
 //built-in accelerometer (call the others)
-void utils::driveStraignt(RobotDrive& drive, const Axis& axis, float seconds, const float& moveValue){
+void utils::driveStraight(RobotDrive& drive, const Axis& axis, float seconds, const float& moveValue){
 	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
 	utils::driveStraight(drive, builtInAccel, axis, seconds, moveValue);
 }
-void utils::driveStraignt(RobotDrive& drive, const Axis& axis, bool (*condition)(void), const float& moveValue){
+void utils::driveStraight(RobotDrive& drive, const Axis& axis, bool (*condition)(void), const float& moveValue){
 	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
 	utils::driveStraight(drive, builtInAccel, axis, condition, moveValue);
 }
