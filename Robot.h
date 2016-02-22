@@ -11,9 +11,11 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include <inttypes.h> //The C library is better...
-#include "WPILib.h"
-#include "tateUtils.h"
+#include <inttypes.h> //The C library is good...
+
+#include "WPILib.h" // robot stuff
+
+#include "tateUtils.h" // custom functions and stuff
 
 class Robot: public IterativeRobot{
 
@@ -31,6 +33,7 @@ private:
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
 	Ultrasonic sonar;
 	AnalogPotentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
+	BuiltInAccelerometer accel; //the accelerometer in the RoboRIO
 
 	//member variables:
 	bool m_kobe = true, m_isHighGear = false;
