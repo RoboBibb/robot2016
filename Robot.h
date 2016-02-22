@@ -30,7 +30,6 @@ private:
 	Joystick driveCtl, shootCtl; // only 1 joystick (for now)
 	Compressor airPump;
 	Talon shooterElevator, inAndOut1, inAndOut2;
-	DigitalInput shooterUpLim, shooterDownLim, shooterInLim;
 	Ultrasonic sonar;
 	AnalogPotentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
 	BuiltInAccelerometer accel; //the accelerometer in the RoboRIO
@@ -47,7 +46,6 @@ private:
 	std::string autoSelected;
 
 
-
 	//inherited from IterativeRobot
 	void RobotInit(); //run once on startup
 
@@ -60,9 +58,8 @@ private:
 	void TestInit();
 	void TestPeriodic();
 
-	void DisabledInit(){
-		std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";
-	}
+	void DisabledInit()
+		{std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";}
 };
 
 
