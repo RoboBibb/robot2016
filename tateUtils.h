@@ -1,18 +1,11 @@
-/*
- * tateUtils.h
- *
- *  Created on: 21/02/2016
- *      Author: tate
- *
- *  Just a few commonly used functions and utilities in a convienient utils namespace.
- *  These could help simplify your code if you know what they mean...
- *
- */
-
-#ifndef TATEUTILS_H_
-#define TATEUTILS_H_
+#ifndef TATEUTILS_H
+#define TATEUTILS_H
 
 #include "WPILib.h"
+
+#ifndef ACCELEROMETER_TURNING_CONSTANT
+	#define ACCELEROMETER_TURNING_CONSTANT 2
+#endif
 
 namespace utils {
 
@@ -31,21 +24,20 @@ namespace utils {
 		const uint8_t& fwd, //forward button number
 		const uint8_t& bkwd, //backward button number
 		const bool& condition = true, //the safety condition
-		const double& multiplier = 1
+		const double& multiplier = 1 //make the motor run at partial power
 	);
 
+	// DriveStraight function: great for driving over uneven terrain in autonomous.
 
-	typedef enum Axis {x, y, z}; //makes the code easier to read
+	enum Axis {x, y, z}; //makes the code easier to read
 
 	//uses an accelerometer to drive straight.
-	void driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, float seconds);
-	void driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, const bool& condition);
-	void driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, bool (*condition)(void));
+	void driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, float seconds, const float& moveValue = 1);
+	void driveStraight(RobotDrive& drive, Accelerometer& accel, const Axis& axis, bool (*condition)(void), const float& moveValue = 1);
 
 	//built-in accelerometer (call the others)
-	void driveStraignt(RobotDrive& drive, const Axis& axis, float seconds);
-	void driveStraight(RobotDrive& drive, const Axis& axis, const bool& condition);
-	void driveStraignt(RobotDrive& drive, const Axis& axis, bool (*condition)(void));
+	void driveStraight(RobotDrive& drive, const Axis& axis, float seconds, const float& moveValue = 1);
+	void driveStraight(RobotDrive& drive, const Axis& axis, bool (*condition)(void), const float& moveValue = 1);
 }
 
 #endif
