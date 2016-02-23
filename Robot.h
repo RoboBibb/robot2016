@@ -39,7 +39,7 @@ private:
 
 	//these are for the autonomous code chooser (smart-dashboard integration)
 	LiveWindow *lw = LiveWindow::GetInstance();
-	SendableChooser *chooser = new SendableChooser();
+	//SendableChooser *chooser = new SendableChooser();
 	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
 	const std::string autoLowBar = "go under low bar (might not work)";
 	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
