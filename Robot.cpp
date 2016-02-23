@@ -185,9 +185,9 @@ void Robot::TeleopPeriodic(){
 
 	// adjust shooter's vertical elevation using the D-pad
 	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterArmPot.Get() <= 75) // D-pad down
-		shooterElevator.SetSpeed(1);
+		shooterElevator.SetSpeed(-0.5f);
 	else if(shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterArmPot.Get() >= 0) // D-pad up
-		shooterElevator.SetSpeed(-1);
+		shooterElevator.SetSpeed(-0.5f);
 	else shooterElevator.SetSpeed(0);
 
 
@@ -196,8 +196,8 @@ void Robot::TeleopPeriodic(){
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
 	} else if (shootCtl.GetRawAxis(2) && !shootCtl.GetRawAxis(3)){ // intake
-		inAndOut1.SetSpeed(-1);
-		inAndOut2.SetSpeed(-1);
+		inAndOut1.SetSpeed(-0.75f);
+		inAndOut2.SetSpeed(-0.75f);
 	} else {
 		inAndOut1.SetSpeed(0);
 		inAndOut2.SetSpeed(0);
