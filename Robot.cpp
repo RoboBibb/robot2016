@@ -1,9 +1,7 @@
 #include "Robot.h"
 
-
 // some important constants...
-#define STOPPING_DISTANCE_INCHES 36 // 3 feet
-
+#define STOPPING_DISTANCE_INCHES 36.0 // 3 feet
 
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
@@ -151,8 +149,8 @@ void Robot::TeleopPeriodic(){
 	//drive the robot
 	// removeGhost() eliminates input less than 15% so that the robot won't move by itself
 	myRobot.ArcadeDrive(
-			-utils::removeGhost(driveCtl.GetRawAxis(1)),
-			-utils::removeGhost(driveCtl.GetRawAxis(0))
+		-utils::removeGhost(driveCtl.GetRawAxis(1)),
+		-utils::removeGhost(driveCtl.GetRawAxis(0))
 	);
 
 	//shift gears a==low b==high
@@ -217,12 +215,15 @@ void Robot::TeleopPeriodic(){
 		m_kobe = true;
 	}
 
+	//print the currrent range to the console
+	std::cout <<"\rUltrasonic Range: " <<sonar.GetRangeInches() <<"inches";
 }
 
 void Robot::TestInit(){
 	std::cout <<"Testing mode enabled...\nCurrently doing: {NULL}" <<std::endl;
 }
 
-void Robot::TestPeriodic(){	lw->Run(); }
+void Robot::TestPeriodic()
+	{ lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
