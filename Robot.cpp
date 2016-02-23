@@ -29,7 +29,7 @@ void Robot::RobotInit(){
 
 	SmartDashboard::PutData("Auto Modes", chooser);
 
-	//get camera feed and post it to the smartdashboard (*NOTE: disabled until we get a camera)
+	//get camera feed and post it to the smartdashboard
 	CameraServer::GetInstance()->SetQuality(50);
 	CameraServer::GetInstance()->StartAutomaticCapture("cam0");// camera name in the web interface
 
@@ -52,8 +52,8 @@ void Robot::AutonomousInit(){
 	airPump.SetClosedLoopControl(true);
 
     // auto-choosing code
-	autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
-	//std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
+	//autoSelected = *((std::string*)chooser->GetSelected()); //4 C++/Java smartdashboard
+	std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoStopAtObstacle); //use this for labview drive station
 
 	// print the chosen autonomous code to the console
 	std::cout <<"World domination ..." <<std::endl
