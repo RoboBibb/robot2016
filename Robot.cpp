@@ -12,7 +12,7 @@ Robot::Robot() : //inline initializations:
 	airPump(0), //compressor
 	shooterElevator(2), //set elevation of the shooter
 	inAndOut1(8), inAndOut2(9), //shooter motors
-	//sonar(1,1), //ultrasonic range-finder
+	sonar(2, 3), //ultrasonic range-finder
 	/// they want potentiometers instead of limit switches :(
 	shooterArmPot(0/*Analog input port number*/, 90/*degrees of rotation*/, 0/*initial rotation*/),
 	accel(Accelerometer::kRange_4G) // the accelerometer in the roboRIO (not used...)
@@ -60,16 +60,16 @@ void Robot::AutonomousInit(){
 	std::cout <<"Autonomous has begun!" <<std::endl
 			<<"Auto selected: " <<autoSelected <<std::endl;
 
-	Ultrasonic * sonar =  new Ultrasonic(1,1);
+
 	// not quite sure what this does... but it's needed.
-	sonar->SetAutomaticMode(true); // turns on automatic mode
+	sonar.SetAutomaticMode(true); // turns on automatic mode
 
 	// disable safety on drive-train
 	myRobot.SetSafetyEnabled(false);
 
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
-		while (sonar->GetRangeInches() < STOPPING_DISTANCE_INCHES)
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
 
 		// drive through the low-bar
@@ -77,7 +77,7 @@ void Robot::AutonomousInit(){
 		Wait(3);
 
 		// drive until the wall on the other side
-		while (sonar->GetRangeInches() < STOPPING_DISTANCE_INCHES)
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
 
 		// turn approximatly 90 degrees right. (towards goal)
@@ -93,7 +93,7 @@ void Robot::AutonomousInit(){
 		//Wait(0.75);
 
 		// drive up to the goal
-		while (sonar->GetRangeInches() < STOPPING_DISTANCE_INCHES)
+		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
 
 		// shoot the ball [into the goal].
@@ -105,9 +105,6 @@ void Robot::AutonomousInit(){
 
 		// stop moving (wait until tele-op starts)
 		myRobot.ArcadeDrive(0.0f, 0.0f);
-
-		//allocated to heap memory...
-		delete sonar;
 
 	} else if (autoSelected == autoSeeSaws) {
 		// autonomous code to go over the see-saws
@@ -131,11 +128,7 @@ void Robot::AutonomousPeriodic(){
 	} else {//default autonomous code
 		//drive forward and stop 3 feet in front of the vertical obstacle.
 		//the robot and field are built in inches, so it's probably best not to use metric =(
-
-		Ultrasonic * sonar =  new Ultrasonic(1,1);
-		sonar->SetAutomaticMode(true);
-
-		if (sonar->GetRangeInches() > STOPPING_DISTANCE_INCHES)
+		if (sonar.GetRangeInches() > STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.3f, 0);
 		else myRobot.Drive(-0.5f, 0);
 	}
@@ -168,6 +161,28 @@ void Robot::TeleopPeriodic(){
 		std::cout <<"High Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
 	}
+
+	/*adjust shooter's vertical angle
+	/// the limits will likely have to be swapped (50% chance)
+	// if it's safe to move the motor, run the code to do so
+	utils::controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
+	//if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
+	//	setMotorDirection(shooterElevator, shootStick, 3, 5);
+	//else //stop the motor if it isn't safe
+	//	shooterElevator.SetSpeed(0);*/
+
+	/* These two blobs serve the same purpose.
+	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
+	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
+	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+	//		setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
+	//else inAndOut2.SetSpeed(0);
+    //this is because they want the wire-colors to match on the motors
+	utils::controlMotor(inAndOut2, shootCtl, 11, 12, ((shootCtl.GetRawButton(11)&&shooterInLim.Get()) || shootCtl.GetRawButton(12)));
+	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
+	//	setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
+	//else inAndOut2.SetSpeed(0);
+	*/
 
 	// adjust shooter's vertical elevation using the D-pad
 	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterArmPot.Get() <= 75) // D-pad down
@@ -229,5 +244,3 @@ void Robot::TestInit(){
 void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
-
-
