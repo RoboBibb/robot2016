@@ -149,7 +149,11 @@ void Robot::TeleopInit(){
 
 void Robot::TeleopPeriodic(){
 	//drive the robot
-	myRobot.ArcadeDrive(-driveCtl.GetRawAxis(1), -driveCtl.GetRawAxis(0));
+	// removeGhost() eliminates input less than 15% so that the robot won't move by itself
+	myRobot.ArcadeDrive(
+			-utils::removeGhost(driveCtl.GetRawAxis(1)),
+			-utils::removeGhost(driveCtl.GetRawAxis(0))
+	);
 
 	//shift gears a==low b==high
 	if (driveCtl.GetRawButton(1) && m_isHighGear) { // a
@@ -161,28 +165,6 @@ void Robot::TeleopPeriodic(){
 		std::cout <<"High Gear" <<std::endl;
 		m_isHighGear = !m_isHighGear;
 	}
-
-	/*adjust shooter's vertical angle
-	/// the limits will likely have to be swapped (50% chance)
-	// if it's safe to move the motor, run the code to do so
-	utils::controlMotor(shooterElevator, shootStick, 3, 5, ((shootStick.GetRawButton(3)&&shooterUpLim.Get()) != (shootStick.GetRawButton(5)&&shooterDownLim.Get())));
-	//if ((shootStick.GetRawButton(3) && shooterUpLim.Get()) != (shootStick.GetRawButton(5) && shooterDownLim.Get()))
-	//	setMotorDirection(shooterElevator, shootStick, 3, 5);
-	//else //stop the motor if it isn't safe
-	//	shooterElevator.SetSpeed(0);*/
-
-	/* These two blobs serve the same purpose.
-	//intake and pre-fire controls (button 3 starts the shooter motors spinning)
-	controlMotor(inAndOut1, shootStick, 11, 12, ((shootStick.GetRawButton(11)&&shooterInLim.Get()) || shootStick.GetRawButton(12)));
-	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-	//		setMotorDirection(inAndOut1, shootStick, 11, 12); //set intake/fire
-	//else inAndOut2.SetSpeed(0);
-    //this is because they want the wire-colors to match on the motors
-	utils::controlMotor(inAndOut2, shootCtl, 11, 12, ((shootCtl.GetRawButton(11)&&shooterInLim.Get()) || shootCtl.GetRawButton(12)));
-	//if ((shootStick.GetRawButton(11) && shooterInLim.Get()) || shootStick.GetRawButton(12))
-	//	setMotorDirection(inAndOut2, shootStick, 11, 12); //set intake/fire
-	//else inAndOut2.SetSpeed(0);
-	*/
 
 	// adjust shooter's vertical elevation using the D-pad
 	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterArmPot.Get() <= 75) // D-pad down
