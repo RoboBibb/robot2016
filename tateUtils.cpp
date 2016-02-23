@@ -1,5 +1,7 @@
-#include "tateUtils.h"
+//#include "tateUtils.h"
 
+
+/*
 //used to control a motors direction using 2 buttons (fwd & bkwd)
 template <class MOTCTLR>
 void utils::setMotorDirection(
@@ -77,3 +79,4 @@ void utils::driveStraight(RobotDrive& drive, const Axis& axis, bool (*condition)
 	BuiltInAccelerometer builtInAccel(Accelerometer::kRange_4G);
 	utils::driveStraight(drive, builtInAccel, axis, condition, moveValue);
 }
+*/
