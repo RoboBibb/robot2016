@@ -1,13 +1,3 @@
-/**
- *Rules for editing:
- * - put a comment with your name stating what you have changed so that I can make the changes to the actual code.
- * - I recommend you install eclipse to take full advantage of it's syntax highlighting, error detection, and integrated documentation. if you need a text editor.
- * - Include lots of comments
- * - a great person once said "good code explains itself" : use self-explanatory names, syntax, etc. and write code that is easy to read.
- * - KISS = Keep It Simple Stupid
- * - Don't change something that will work unless performance would be improved. (even so, remember KISS)
- */
-
 #ifndef ROBOT_H
 #define ROBOT_H
 
@@ -59,7 +49,7 @@ private:
 	void TestPeriodic();
 
 	void DisabledInit()
-		{std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";}
+		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n"; }
 };
 
 
