@@ -3,12 +3,15 @@
 
 #include "WPILib.h"
 
+/*
 #ifndef ACCELEROMETER_TURNING_CONSTANT
 	#define ACCELEROMETER_TURNING_CONSTANT 2
 #endif
+*/
 
 namespace utils {
 
+	/*
 	template <typename MOTCTLR>
 	void setMotorDirection(
 		MOTCTLR& motor, //a reference to the motor controller
@@ -38,6 +41,13 @@ namespace utils {
 	//built-in accelerometer (call the others)
 	void driveStraight(RobotDrive& drive, const Axis& axis, float seconds, const float& moveValue = 1);
 	void driveStraight(RobotDrive& drive, const Axis& axis, bool (*condition)(void), const float& moveValue = 1);
+
+	*/
+
+	inline float removeGhost(const float& val){
+		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
+	}
+
 }
 
 #endif
