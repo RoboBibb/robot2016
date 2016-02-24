@@ -49,8 +49,13 @@ private:
 	void TestPeriodic();
 
 	void DisabledInit()
-		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n"; }
+		{std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";}
 };
 
+namespace utils {
+	inline float removeGhost(const float& val){
+		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
+	}
+}
 
 #endif
