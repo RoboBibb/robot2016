@@ -21,10 +21,12 @@ private:
 	Compressor airPump;
 	Talon shooterElevator, inAndOut1, inAndOut2;
 	Ultrasonic sonar;
-	AnalogPotentiometer shooterArmPot; //pot used to determine the rough angle of the shooter.
+	// back to limit switches
+	DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // shooterInLim might not be used....
 	BuiltInAccelerometer accel; //the accelerometer in the RoboRIO
 
-	//member variables:
+
+	//data members:
 	bool m_kobe = true, m_isHighGear = false;
 
 	//these are for the autonomous code chooser (smart-dashboard integration)
@@ -52,10 +54,12 @@ private:
 		{std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";}
 };
 
+
 namespace utils {
 	inline float removeGhost(const float& val){
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
 }
+
 
 #endif
