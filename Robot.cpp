@@ -10,9 +10,9 @@ Robot::Robot() : //inline initializations:
 	airPump(0), //compressor
 	shooterElevator(2), //set elevation of the shooter
 	inAndOut1(8), inAndOut2(9), //shooter motors
-	sonar(2, 3), //ultrasonic range-finder
-	/// they want potentiometers instead of limit switches :(
-	shooterArmPot(0/*Analog input port number*/, 90/*degrees of rotation*/, 0/*initial rotation*/),
+	sonar(3, 3), //ultrasonic range-finder @ DIO-3
+	shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
+	//shooterArmPot(0/*Analog input port number*/, 90/*degrees of rotation*/, 0/*initial rotation*/),
 	accel(Accelerometer::kRange_4G) // the accelerometer in the roboRIO (not used...)
 {
 	myRobot.SetExpiration(0.1);
@@ -148,9 +148,10 @@ void Robot::TeleopInit(){
 void Robot::TeleopPeriodic(){
 	//drive the robot
 	// removeGhost() eliminates input less than 15% so that the robot won't move by itself
+	// lower drive power to 75% to eliminate brownout
 	myRobot.ArcadeDrive(
-		-utils::removeGhost(driveCtl.GetRawAxis(1)),
-		-utils::removeGhost(driveCtl.GetRawAxis(0))
+		-utils::removeGhost(driveCtl.GetRawAxis(1)) * 0.75f,
+		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
 	);
 
 	//shift gears a==low b==high
@@ -165,9 +166,9 @@ void Robot::TeleopPeriodic(){
 	}
 
 	// adjust shooter's vertical elevation using the D-pad
-	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterArmPot.Get() <= 75) // D-pad down
+	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) // D-pad down
 		shooterElevator.SetSpeed(-0.5f);
-	else if(shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterArmPot.Get() >= 0) // D-pad up
+	else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get() >= 0) // D-pad up
 		shooterElevator.SetSpeed(-0.5f);
 	else shooterElevator.SetSpeed(0);
 
@@ -179,7 +180,7 @@ void Robot::TeleopPeriodic(){
 	} else if (shootCtl.GetRawAxis(2) && !shootCtl.GetRawAxis(3)){ // intake
 		inAndOut1.SetSpeed(-0.75f);
 		inAndOut2.SetSpeed(-0.75f);
-	} else {
+	} else { // no action
 		inAndOut1.SetSpeed(0);
 		inAndOut2.SetSpeed(0);
 	}
@@ -220,10 +221,11 @@ void Robot::TeleopPeriodic(){
 }
 
 void Robot::TestInit(){
-	std::cout <<"Testing mode enabled...\nCurrently doing: {NULL}" <<std::endl;
+	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl;
 }
 
-void Robot::TestPeriodic()
-	{ lw->Run(); }
+void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
+
+
