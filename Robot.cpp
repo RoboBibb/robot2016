@@ -12,7 +12,6 @@ Robot::Robot() : //inline initializations:
 	inAndOut1(8), inAndOut2(9), //shooter motors
 	sonar(3, 3), //ultrasonic range-finder @ DIO-3
 	shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
-	//shooterArmPot(0/*Analog input port number*/, 90/*degrees of rotation*/, 0/*initial rotation*/),
 	accel(Accelerometer::kRange_4G) // the accelerometer in the roboRIO (not used...)
 {
 	myRobot.SetExpiration(0.1);
@@ -151,7 +150,7 @@ void Robot::TeleopPeriodic(){
 	// lower drive power to 75% to eliminate brownout
 	myRobot.ArcadeDrive(
 		-utils::removeGhost(driveCtl.GetRawAxis(1)) * 0.75f,
-		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
+		-utils::removeGhost(driveCtl.GetRawAxis(0))
 	);
 
 	//shift gears a==low b==high
@@ -168,7 +167,7 @@ void Robot::TeleopPeriodic(){
 	// adjust shooter's vertical elevation using the D-pad
 	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) // D-pad down
 		shooterElevator.SetSpeed(-0.5f);
-	else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get() >= 0) // D-pad up
+	else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get()) // D-pad up
 		shooterElevator.SetSpeed(-0.5f);
 	else shooterElevator.SetSpeed(0);
 
@@ -190,6 +189,9 @@ void Robot::TeleopPeriodic(){
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
 	else shooterPiston.Set(DoubleSolenoid::Value::kForward); // retract the shooter
 
+	
+	// give some driver feedback:
+	
 	// rumble both controllers when firing and when switching gears.
 	if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire (kobe)
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
@@ -227,5 +229,3 @@ void Robot::TestInit(){
 void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
-
-
