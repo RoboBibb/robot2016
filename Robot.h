@@ -1,8 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include <inttypes.h> //The C library is good...
-
+#include <inttypes.h> // constant width integers (ie- int8_t)
 #include "WPILib.h" // robot stuff
 
 
@@ -12,30 +11,26 @@ public:
     Robot(); //constructor must be public
 
 private:
-
-    //robot parts (initialized by constructor):
+    //robot parts:
     RobotDrive myRobot; // drive train
-	DoubleSolenoid gearShifter, shooterPiston; //piston used to switch gears
-	Joystick driveCtl, shootCtl; // only 1 joystick (for now)
-	Compressor airPump;
-	Talon shooterElevator1,shooterElevator2, inAndOut1, inAndOut2;
-	Ultrasonic sonar;
-	// back to limit switches
-	DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // shooterInLim might not be used....
-	BuiltInAccelerometer accel; //the accelerometer in the RoboRIO
-
+	DoubleSolenoid gearShifter, shooterPiston; // piston used to switch gears
+	Joystick driveCtl, shootCtl; // x-box controllers
+	Compressor airPump; // compressor
+	//Talon shooterElevator1, shooterElevator2, inAndOut1, inAndOut2;
+	Ultrasonic sonar; //rnage-finder
+	//DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // limit-switches
+	BuiltInAccelerometer accel; // accelerometer in the RoboRIO
 
 	//data members:
 	bool m_kobe = true, m_isHighGear = false;
 
 	//these are for the autonomous code chooser (smart-dashboard integration)
-	LiveWindow *lw = LiveWindow::GetInstance();
+	LiveWindow* lw = LiveWindow::GetInstance();
 	//SendableChooser *chooser = new SendableChooser();
 	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
 	const std::string autoLowBar = "go under low bar (might not work)";
 	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
 	std::string autoSelected;
-
 
 	//inherited from IterativeRobot
 	void RobotInit(); //run once on startup
@@ -49,8 +44,14 @@ private:
 	void TestInit();
 	void TestPeriodic();
 
+	void TestInit()
+		{ std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl; }
+	void TestPeriodic()
+		{ lw->Run(); }
+
+	void DisabledPeriodic(){ }
 	void DisabledInit()
-		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n"; }
+		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe" <<std::endl; }
 };
 
 namespace utils {
