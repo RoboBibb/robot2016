@@ -5,9 +5,8 @@
 
 #include "WPILib.h" // robot stuff
 
-#include "tateUtils.h" // custom functions and stuff
 
-class Robot: public IterativeRobot{
+class Robot: public IterativeRobot {
 
 public:
     Robot(); //constructor must be public
@@ -19,7 +18,7 @@ private:
 	DoubleSolenoid gearShifter, shooterPiston; //piston used to switch gears
 	Joystick driveCtl, shootCtl; // only 1 joystick (for now)
 	Compressor airPump;
-	Talon shooterElevator, inAndOut1, inAndOut2;
+	Talon shooterElevator1,shooterElevator2, inAndOut1, inAndOut2;
 	Ultrasonic sonar;
 	// back to limit switches
 	DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // shooterInLim might not be used....
@@ -51,15 +50,14 @@ private:
 	void TestPeriodic();
 
 	void DisabledInit()
-		{std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n";}
+		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe\n"; }
 };
 
-
 namespace utils {
+	/// remove 'ghost-input' resulting from inaccurate joysticks
 	inline float removeGhost(const float& val){
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
 }
-
 
 #endif
