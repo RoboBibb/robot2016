@@ -1,17 +1,17 @@
 #include "Robot.h"
 
-// some important constants...
 #define STOPPING_DISTANCE_INCHES 36.0 // 3 feet
+
 
 Robot::Robot() : //inline initializations:
 	myRobot(0, 1), //left0, right1
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
-	driveCtl(0), shootCtl(1), //they want 2 joysicks now
+	driveCtl(0), shootCtl(1), //xbox360 controllers
 	airPump(0), //compressor
-	shooterElevator1(2), shooterElevator2(2),//set elevation of the shooter
-	inAndOut1(8), inAndOut2(9), //shooter motors
-	sonar(3, 3), //ultrasonic range-finder @ DIO-3
-	shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
+	//shooterElevator1(2), shooterElevator2(3),//set elevation of the shooter
+	//inAndOut1(8), inAndOut2(9), //shooter motors
+	//sonar(3, 3), //ultrasonic range-finder @ DIO-3
+	//shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
 	accel(Accelerometer::kRange_4G) // the accelerometer in the roboRIO (not used...)
 {
 	myRobot.SetExpiration(0.1);
@@ -57,13 +57,18 @@ void Robot::AutonomousInit(){
 	std::cout <<"Autonomous has begun!" <<std::endl
 			<<"Auto selected: " <<autoSelected <<std::endl;
 
-
-	// not quite sure what this does... but it's needed.
-	sonar.SetAutomaticMode(true); // turns on automatic mode
+	//sonar.SetAutomaticMode(true); // turns on automatic mode
 
 	// disable safety on drive-train
 	myRobot.SetSafetyEnabled(false);
 
+	// drive forward for 2 seconds then stop
+	myRobot.Drive(0.5f, 0);
+	Wait(2);
+	myRobot.Drive(0.0f, 0);
+
+
+/* requires ultrasonic sensor
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
@@ -114,10 +119,12 @@ void Robot::AutonomousInit(){
 
 	} else { //default autonomous code
 		//Default Auto goes here
-	}
+	} */
 }
 
 void Robot::AutonomousPeriodic(){
+	// NO-OP
+	/* requires ultrasonic sensor :(
 	if (autoSelected == autoLowBar) {
 		//autonomous code to go through the low bar
 	} else if (autoSelected == autoSeeSaws) {
@@ -129,6 +136,7 @@ void Robot::AutonomousPeriodic(){
 			myRobot.Drive(-0.3f, 0);
 		else myRobot.Drive(-0.5f, 0);
 	}
+	*/
 }
 
 
@@ -141,7 +149,6 @@ void Robot::TeleopInit(){
 
 	//start out in low gear
 	gearShifter.Set(DoubleSolenoid::Value::kForward);
-
 }
 
 void Robot::TeleopPeriodic(){
@@ -165,7 +172,7 @@ void Robot::TeleopPeriodic(){
 	}
 
 	// adjust shooter's vertical elevation using the D-pad
-	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
+	/*if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
 		shooterElevator1.SetSpeed(-0.5f);
 		shooterElevator2.SetSpeed(0.5f);
 	} else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get()) {// D-pad up
@@ -174,11 +181,11 @@ void Robot::TeleopPeriodic(){
 	} else {
 		shooterElevator1.SetSpeed(0);
 		shooterElevator2.SetSpeed(0);
-	}
+	}*/
 
 
 	//intake and pre-fire controls
-	if (shootCtl.GetRawAxis(3) && !shootCtl.GetRawAxis(2)){ // pre-shoot
+	/*if (shootCtl.GetRawAxis(3) && !shootCtl.GetRawAxis(2)){ // pre-shoot
 		inAndOut1.SetSpeed(1); // was getting some problems with the motor stalling out
 		inAndOut2.SetSpeed(1);
 	} else if (shootCtl.GetRawAxis(2) && !shootCtl.GetRawAxis(3)){ // intake
@@ -187,7 +194,7 @@ void Robot::TeleopPeriodic(){
 	} else { // no action
 		inAndOut1.SetSpeed(0);
 		inAndOut2.SetSpeed(0);
-	}
+	}*/
 
 	// We're using a piston for the shooter :P
 	if (shootCtl.GetRawAxis(3) > 0.95f) // fire the shooter
@@ -198,12 +205,12 @@ void Robot::TeleopPeriodic(){
 	// give some driver feedback:
 
 	// rumble both controllers when firing and when switching gears.
-	if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire (kobe)
+	/*if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire (kobe)
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
 		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
-	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
+	} else */if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
@@ -216,21 +223,15 @@ void Robot::TeleopPeriodic(){
 	}
 
 	//print "Kobe!!" to the terminal when we shoot (for good luck)
-	if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
+	/*if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
 		std::cout <<"Kobe!!" <<std::endl;
 		m_kobe = false;
 	} else if (shootCtl.GetRawAxis(3) <= 0.95f) {
 		m_kobe = true;
-	}
+	}*/
 
 	//print the currrent range to the console
-	std::cout <<"\rUltrasonic Range: " <<sonar.GetRangeInches() <<"inches";
+	//std::cout <<"\rUltrasonic Range: " <<sonar.GetRangeInches() <<"inches";
 }
-
-void Robot::TestInit(){
-	std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl;
-}
-
-void Robot::TestPeriodic(){	lw->Run(); }
 
 START_ROBOT_CLASS(Robot)
