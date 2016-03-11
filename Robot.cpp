@@ -8,7 +8,7 @@ Robot::Robot() : //inline initializations:
 	gearShifter(0,1), shooterPiston(2,3), //solenoids
 	driveCtl(0), shootCtl(1), //they want 2 joysicks now
 	airPump(0), //compressor
-	shooterElevator(2), //set elevation of the shooter
+	shooterElevator1(2), shooterElevator2(2),//set elevation of the shooter
 	inAndOut1(8), inAndOut2(9), //shooter motors
 	sonar(3, 3), //ultrasonic range-finder @ DIO-3
 	shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
@@ -165,11 +165,16 @@ void Robot::TeleopPeriodic(){
 	}
 
 	// adjust shooter's vertical elevation using the D-pad
-	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) // D-pad down
-		shooterElevator.SetSpeed(-0.5f);
-	else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get()) // D-pad up
-		shooterElevator.SetSpeed(-0.5f);
-	else shooterElevator.SetSpeed(0);
+	if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
+		shooterElevator1.SetSpeed(-0.5f);
+		shooterElevator2.SetSpeed(0.5f);
+	} else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get()) {// D-pad up
+		shooterElevator1.SetSpeed(0.5f);
+		shooterElevator2.SetSpeed(-0.5f);
+	} else {
+		shooterElevator1.SetSpeed(0);
+		shooterElevator2.SetSpeed(0);
+	}
 
 
 	//intake and pre-fire controls
@@ -189,9 +194,9 @@ void Robot::TeleopPeriodic(){
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
 	else shooterPiston.Set(DoubleSolenoid::Value::kForward); // retract the shooter
 
-	
+
 	// give some driver feedback:
-	
+
 	// rumble both controllers when firing and when switching gears.
 	if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire (kobe)
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
