@@ -16,21 +16,23 @@ private:
 	DoubleSolenoid gearShifter, shooterPiston; // piston used to switch gears
 	Joystick driveCtl, shootCtl; // x-box controllers
 	Compressor airPump; // compressor
-	//Talon shooterElevator1, shooterElevator2, inAndOut1, inAndOut2;
-	Ultrasonic sonar; //rnage-finder
+	Talon /*shooterElevator1, shooterElevator2,*/ inAndOut;
+	//Ultrasonic sonar; //rnage-finder
 	//DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // limit-switches
 	BuiltInAccelerometer accel; // accelerometer in the RoboRIO
+
 
 	//data members:
 	bool m_kobe = true, m_isHighGear = false;
 
 	//these are for the autonomous code chooser (smart-dashboard integration)
 	LiveWindow* lw = LiveWindow::GetInstance();
-	//SendableChooser *chooser = new SendableChooser();
+	SendableChooser *chooser = new SendableChooser();
 	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
 	const std::string autoLowBar = "go under low bar (might not work)";
 	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
 	std::string autoSelected;
+
 
 	//inherited from IterativeRobot
 	void RobotInit(); //run once on startup
@@ -41,15 +43,11 @@ private:
 	void TeleopInit();
 	void TeleopPeriodic();
 
-	void TestInit();
-	void TestPeriodic();
-
 	void TestInit()
 		{ std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl; }
 	void TestPeriodic()
 		{ lw->Run(); }
 
-	void DisabledPeriodic(){ }
 	void DisabledInit()
 		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe" <<std::endl; }
 };
