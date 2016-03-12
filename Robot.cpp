@@ -9,7 +9,7 @@ Robot::Robot() : //inline initializations:
 	driveCtl(0), shootCtl(1), //xbox360 controllers
 	airPump(0), //compressor
 	//shooterElevator1(2), shooterElevator2(3),//set elevation of the shooter
-	//inAndOut1(8), inAndOut2(9), //shooter motors
+	inAndOut(4), //shooter motors
 	//sonar(3, 3), //ultrasonic range-finder @ DIO-3
 	//shooterUpLim(0), shooterDownLim(1), shooterInLim(2), //some limit switches
 	accel(Accelerometer::kRange_4G) // the accelerometer in the roboRIO (not used...)
@@ -20,9 +20,9 @@ Robot::Robot() : //inline initializations:
 
 void Robot::RobotInit(){
 	//setup the auto-chooser:
-	//chooser->AddDefault(autoStopAtObstacle, (void*)&autoStopAtObstacle);
-	//chooser->AddObject(autoLowBar, (void*)&autoLowBar);
-	//chooser->AddObject(autoSeeSaws, (void*)&autoSeeSaws);
+	chooser->AddDefault(autoStopAtObstacle, (void*)&autoStopAtObstacle);
+	chooser->AddObject(autoLowBar, (void*)&autoLowBar);
+	chooser->AddObject(autoSeeSaws, (void*)&autoSeeSaws);
 
 	//SmartDashboard::PutData("Auto Modes", chooser);
 
@@ -31,7 +31,6 @@ void Robot::RobotInit(){
 	CameraServer::GetInstance()->StartAutomaticCapture("cam0");// camera name in the web interface
 
 	std::cout <<"Hello world!" <<std::endl; // :P
-
 }
 
 
@@ -57,18 +56,18 @@ void Robot::AutonomousInit(){
 	std::cout <<"Autonomous has begun!" <<std::endl
 			<<"Auto selected: " <<autoSelected <<std::endl;
 
-	//sonar.SetAutomaticMode(true); // turns on automatic mode
 
 	// disable safety on drive-train
 	myRobot.SetSafetyEnabled(false);
 
 	// drive forward for 2 seconds then stop
-	myRobot.Drive(0.5f, 0);
-	Wait(2);
+	myRobot.Drive(0.75f, 0);
+	Wait(4);
 	myRobot.Drive(0.0f, 0);
 
 
 /* requires ultrasonic sensor
+	sonar.SetAutomaticMode(true); // turns on automatic mode
 	if (autoSelected == autoLowBar) {
 		// drive until the low bar flap thing
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
@@ -123,7 +122,6 @@ void Robot::AutonomousInit(){
 }
 
 void Robot::AutonomousPeriodic(){
-	// NO-OP
 	/* requires ultrasonic sensor :(
 	if (autoSelected == autoLowBar) {
 		//autonomous code to go through the low bar
@@ -135,8 +133,8 @@ void Robot::AutonomousPeriodic(){
 		if (sonar.GetRangeInches() > STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.3f, 0);
 		else myRobot.Drive(-0.5f, 0);
-	}
-	*/
+	} */
+	// NO-OP
 }
 
 
@@ -149,15 +147,20 @@ void Robot::TeleopInit(){
 
 	//start out in low gear
 	gearShifter.Set(DoubleSolenoid::Value::kForward);
+
+	myRobot.SetSafetyEnabled(false);
 }
 
+
 void Robot::TeleopPeriodic(){
+	//to be used later
+	static float currentStickYVal; // `static` saves resources :P
+
 	//drive the robot
-	// removeGhost() eliminates input less than 15% so that the robot won't move by itself
-	// lower drive power to 75% to eliminate brownout
 	myRobot.ArcadeDrive(
-		-utils::removeGhost(driveCtl.GetRawAxis(1)) * 0.75f,
-		-utils::removeGhost(driveCtl.GetRawAxis(0))
+		-((currentStickYVal = (currentStickYVal + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2) > 0) ?
+			sqrt(currentStickYVal) * 0.75f : -sqrt(-currentStickYVal) * 0.75f,
+		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
 	);
 
 	//shift gears a==low b==high
@@ -172,7 +175,8 @@ void Robot::TeleopPeriodic(){
 	}
 
 	// adjust shooter's vertical elevation using the D-pad
-	/*if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
+	/* now using a static shooter (no adjustments to angle
+	 if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
 		shooterElevator1.SetSpeed(-0.5f);
 		shooterElevator2.SetSpeed(0.5f);
 	} else if (shootCtl.GetPOV() < 90 && shootCtl.GetPOV() > 270 && shooterUpLim.Get()) {// D-pad up
@@ -185,16 +189,11 @@ void Robot::TeleopPeriodic(){
 
 
 	//intake and pre-fire controls
-	/*if (shootCtl.GetRawAxis(3) && !shootCtl.GetRawAxis(2)){ // pre-shoot
-		inAndOut1.SetSpeed(1); // was getting some problems with the motor stalling out
-		inAndOut2.SetSpeed(1);
-	} else if (shootCtl.GetRawAxis(2) && !shootCtl.GetRawAxis(3)){ // intake
-		inAndOut1.SetSpeed(-0.75f);
-		inAndOut2.SetSpeed(-0.75f);
-	} else { // no action
-		inAndOut1.SetSpeed(0);
-		inAndOut2.SetSpeed(0);
-	}*/
+	if (shootCtl.GetRawAxis(3) > shootCtl.GetRawAxis(2)) // intake
+		inAndOut.SetSpeed(-0.8);
+	else if (shootCtl.GetRawAxis(3) < shootCtl.GetRawAxis(2)) // pre-fire
+		inAndOut.SetSpeed(0.8f);
+	else inAndOut.SetSpeed(0); // freeze
 
 	// We're using a piston for the shooter :P
 	if (shootCtl.GetRawAxis(3) > 0.95f) // fire the shooter
@@ -204,13 +203,21 @@ void Robot::TeleopPeriodic(){
 
 	// give some driver feedback:
 
+	//print "Kobe!!" to the terminal when we shoot (for good luck)
+	if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
+		std::cout <<"Kobe!!" <<std::endl;
+		m_kobe = false;
+	} else if (shootCtl.GetRawAxis(3) <= 0.95f) {
+		m_kobe = true;
+	}
+
 	// rumble both controllers when firing and when switching gears.
-	/*if (shootCtl.GetRawAxis(3) > 0.95f) { // rumble for fire (kobe)
+	if (shootCtl.GetRawAxis(3) > 0.2f) { // rumble for fire (kobe)
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
 		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
-	} else */if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
+	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
 		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
 		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
@@ -221,17 +228,6 @@ void Robot::TeleopPeriodic(){
 		shootCtl.SetRumble(shootCtl.kLeftRumble, 0);
 		shootCtl.SetRumble(shootCtl.kRightRumble, 0);
 	}
-
-	//print "Kobe!!" to the terminal when we shoot (for good luck)
-	/*if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
-		std::cout <<"Kobe!!" <<std::endl;
-		m_kobe = false;
-	} else if (shootCtl.GetRawAxis(3) <= 0.95f) {
-		m_kobe = true;
-	}*/
-
-	//print the currrent range to the console
-	//std::cout <<"\rUltrasonic Range: " <<sonar.GetRangeInches() <<"inches";
 }
 
 START_ROBOT_CLASS(Robot)
