@@ -62,13 +62,14 @@ void Robot::AutonomousInit(){
 
 	// drive forward for 2 seconds then stop
 	myRobot.Drive(0.75f, 0);
-	Wait(4);
+	Wait(3.5);
 	myRobot.Drive(0.0f, 0);
 
 
 /* requires ultrasonic sensor
 	sonar.SetAutomaticMode(true); // turns on automatic mode
 	if (autoSelected == autoLowBar) {
+
 		// drive until the low bar flap thing
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
@@ -109,13 +110,11 @@ void Robot::AutonomousInit(){
 
 	} else if (autoSelected == autoSeeSaws) {
 		// autonomous code to go over the see-saws
-
 		///TODO:
 		/// drive up to the see-saws
 		/// use the shooter to lower the see-saws (might not be possible)
 		/// drive over the see-saws
 		/// proceed to emulate the low-bar autonomous code.
-
 	} else { //default autonomous code
 		//Default Auto goes here
 	} */
@@ -153,29 +152,40 @@ void Robot::TeleopInit(){
 
 
 void Robot::TeleopPeriodic(){
-	//to be used later
-	static float currentStickYVal; // `static` saves resources :P
+
+	// joystick data from previous cycle 
+	static float stickxval = 0, stickyval = 0;  // `static` keeps this local variable in memory
 
 	//drive the robot
+	/*
 	myRobot.ArcadeDrive(
-		-((currentStickYVal = (currentStickYVal + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2) > 0) ?
-			sqrt(currentStickYVal) * 0.75f : -sqrt(-currentStickYVal) * 0.75f,
+		-((stickyval = ((stickyval + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2)) > 0) ?
+			sqrt(stickyval) * 0.75f : -sqrt(-stickyval) * 0.75f,
 		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
 	);
+	*/
+
+
+	myRobot.ArcadeDrive(
+		utils::linearReduceBrownout(0.05f, driveCtl.GetRawAxis(1), stickyval) * 0.75f,
+		utils::linearReduceBrownout(0.1f, driveCtl.GetRawAxis(0), stickxval) * 0.75f
+	);
+
+	static bool isHighGear = false;
 
 	//shift gears a==low b==high
-	if (driveCtl.GetRawButton(1) && m_isHighGear) { // a
+	if (driveCtl.GetRawButton(1) && isHighGear) { // a
 		gearShifter.Set(DoubleSolenoid::Value::kForward);
 		std::cout <<"Low Gear" <<std::endl;
-		m_isHighGear = !m_isHighGear;
-	} else if (driveCtl.GetRawButton(2) && !m_isHighGear) { // b
+		isHighGear = !isHighGear;
+	} else if (driveCtl.GetRawButton(2) && !isHighGear) { // b
 		gearShifter.Set(DoubleSolenoid::Value::kReverse);
 		std::cout <<"High Gear" <<std::endl;
-		m_isHighGear = !m_isHighGear;
+		isHighGear = !isHighGear;
 	}
 
 	// adjust shooter's vertical elevation using the D-pad
-	/* now using a static shooter (no adjustments to angle
+	/* now using a static shooter (no adjustments to angle)
 	 if (shootCtl.GetPOV() > 90 && shootCtl.GetPOV() < 270 && shooterDownLim.Get()) { // D-pad down
 		shooterElevator1.SetSpeed(-0.5f);
 		shooterElevator2.SetSpeed(0.5f);
@@ -203,12 +213,14 @@ void Robot::TeleopPeriodic(){
 
 	// give some driver feedback:
 
-	//print "Kobe!!" to the terminal when we shoot (for good luck)
-	if (m_kobe && shootCtl.GetRawAxis(3) > 0.95f) {
+	static bool kobe = true;
+
+	//print "Kobe!!" to the console when we shoot (for good luck)
+	if (kobe && shootCtl.GetRawAxis(3) > 0.95f) {
 		std::cout <<"Kobe!!" <<std::endl;
-		m_kobe = false;
+		kobe = false;
 	} else if (shootCtl.GetRawAxis(3) <= 0.95f) {
-		m_kobe = true;
+		kobe = true;
 	}
 
 	// rumble both controllers when firing and when switching gears.
@@ -229,5 +241,6 @@ void Robot::TeleopPeriodic(){
 		shootCtl.SetRumble(shootCtl.kRightRumble, 0);
 	}
 }
+
 
 START_ROBOT_CLASS(Robot)
