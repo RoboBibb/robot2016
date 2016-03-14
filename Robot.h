@@ -21,10 +21,6 @@ private:
 	//DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // limit-switches
 	BuiltInAccelerometer accel; // accelerometer in the RoboRIO
 
-
-	//data members:
-	bool m_kobe = true, m_isHighGear = false;
-
 	//these are for the autonomous code chooser (smart-dashboard integration)
 	LiveWindow* lw = LiveWindow::GetInstance();
 	SendableChooser *chooser = new SendableChooser();
@@ -34,7 +30,7 @@ private:
 	std::string autoSelected;
 
 
-	//inherited from IterativeRobot
+	// functions inherited from the IterativeRobot base-class:
 	void RobotInit(); //run once on startup
 
 	void AutonomousInit();
@@ -57,6 +53,42 @@ namespace utils {
 	inline float removeGhost(const float& val){
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
+
+	/// a linear approach to preventing brownout
+	float linearReduceBrownout(const float& limit, const float& current, float& past){
+
+		// null or ghost input doesn't affect robot
+		if (removeGhost(current) == 0.0f) return 0.0f;
+
+		float change = current - past;
+
+		if (current > 0) {// forward
+			if (change > limit) {
+				past += limit;
+				return past;
+			} else if (change <= limit) {
+				past = current;
+				return current;
+			}
+		} else { //reverse
+			if (change < -limit) {
+				past += limit;
+				return past;
+			} else if (change >= limit) {
+				past = current;
+				return current;
+			}
+		}
+	}
+
+	// an expanential approach to preventing brownout
+	float expReduceBrownout(const float& current, float& past){
+		return -((((past + utils::removeGhost(current)) / 2) > 0) ?
+			sqrt(past = ((past + utils::removeGhost(current)) / 2)) * 0.75f :
+			-sqrt(past = -((past + utils::removeGhost(current)) / 2)) * 0.75f
+		);
+	}
+
 }
 
 #endif
