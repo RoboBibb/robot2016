@@ -20,9 +20,9 @@ Robot::Robot() : //inline initializations:
 
 void Robot::RobotInit(){
 	//setup the auto-chooser:
-	chooser->AddDefault(autoStopAtObstacle, (void*)&autoStopAtObstacle);
-	chooser->AddObject(autoLowBar, (void*)&autoLowBar);
-	chooser->AddObject(autoSeeSaws, (void*)&autoSeeSaws);
+	chooser->AddDefault(autoStopAtObstacle, (void*) &autoStopAtObstacle);
+	chooser->AddObject(autoLowBar, (void*) &autoLowBar);
+	chooser->AddObject(autoSeeSaws, (void*) &autoSeeSaws);
 
 	//SmartDashboard::PutData("Auto Modes", chooser);
 
@@ -30,7 +30,8 @@ void Robot::RobotInit(){
 	CameraServer::GetInstance()->SetQuality(50);
 	CameraServer::GetInstance()->StartAutomaticCapture("cam0");// camera name in the web interface
 
-	std::cout <<"Hello world!" <<std::endl; // :P
+	// Dream big XD
+	std::cout <<"Hello world! I\'ve got a plan for world domination." <<std::endl;
 }
 
 
@@ -56,7 +57,6 @@ void Robot::AutonomousInit(){
 	std::cout <<"Autonomous has begun!" <<std::endl
 			<<"Auto selected: " <<autoSelected <<std::endl;
 
-
 	// disable safety on drive-train
 	myRobot.SetSafetyEnabled(false);
 
@@ -64,7 +64,6 @@ void Robot::AutonomousInit(){
 	myRobot.Drive(0.75f, 0);
 	Wait(3.5);
 	myRobot.Drive(0.0f, 0);
-
 
 /* requires ultrasonic sensor
 	sonar.SetAutomaticMode(true); // turns on automatic mode
@@ -115,9 +114,11 @@ void Robot::AutonomousInit(){
 		/// use the shooter to lower the see-saws (might not be possible)
 		/// drive over the see-saws
 		/// proceed to emulate the low-bar autonomous code.
+
 	} else { //default autonomous code
 		//Default Auto goes here
-	} */
+	}
+	*/
 }
 
 void Robot::AutonomousPeriodic(){
@@ -150,14 +151,13 @@ void Robot::TeleopInit(){
 	myRobot.SetSafetyEnabled(false);
 }
 
-
 void Robot::TeleopPeriodic(){
 
-	// joystick data from previous cycle 
+	// joystick data from previous cycle
 	static float stickxval = 0, stickyval = 0;  // `static` keeps this local variable in memory
 
 	//drive the robot
-	/*
+	/* uses hard-coded exponential brownout prevention strategy
 	myRobot.ArcadeDrive(
 		-((stickyval = ((stickyval + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2)) > 0) ?
 			sqrt(stickyval) * 0.75f : -sqrt(-stickyval) * 0.75f,
@@ -165,10 +165,16 @@ void Robot::TeleopPeriodic(){
 	);
 	*/
 
+	/*
+	myRobot.ArcadeDrive(
+		utils::expReduceBrownout(driveCtl.GetRawAxis(1), stickyval) * 0.75f,
+		utils::expReduceBrownout(driveCtl.GetRawAxis(0), stickxval) * 0.75f
+	);
+	*/
 
 	myRobot.ArcadeDrive(
-		utils::linearReduceBrownout(0.05f, driveCtl.GetRawAxis(1), stickyval) * 0.75f,
-		utils::linearReduceBrownout(0.1f, driveCtl.GetRawAxis(0), stickxval) * 0.75f
+		utils::linReduceBrownout(0.05f, driveCtl.GetRawAxis(1), stickyval) * 0.75f,
+		utils::linReduceBrownout(0.1f, driveCtl.GetRawAxis(0), stickxval) * 0.75f
 	);
 
 	static bool isHighGear = false;
