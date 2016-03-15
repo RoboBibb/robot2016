@@ -68,45 +68,43 @@ void Robot::AutonomousInit(){
 /* requires ultrasonic sensor
 	sonar.SetAutomaticMode(true); // turns on automatic mode
 	if (autoSelected == autoLowBar) {
-
 		// drive until the low bar flap thing
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
-
+		
 		// drive through the low-bar
 		myRobot.ArcadeDrive(0, -0.25f);
 		Wait(3);
-
+		
 		// drive until the wall on the other side
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
-
+		
 		// turn approximatly 90 degrees right. (towards goal)
 		myRobot.ArcadeDrive(0, -0.2f);
 		Wait(0.5);	//adjust wait period
-
+		
 		// start driving forward again
 		myRobot.ArcadeDrive(0.5f, 0.5f);
-
+		
 		// start spinning the shooter
 		inAndOut1.SetSpeed(1);
 		inAndOut2.SetSpeed(1);
 		//Wait(0.75);
-
+		
 		// drive up to the goal
 		while (sonar.GetRangeInches() < STOPPING_DISTANCE_INCHES)
 			myRobot.Drive(-0.5f, 0);
-
+		
 		// shoot the ball [into the goal].
 		shooterPiston.Set(DoubleSolenoid::Value::kReverse);
-
+		
 		// stop spinning the shooter
 		inAndOut1.SetSpeed(0);
 		inAndOut2.SetSpeed(0);
-
+		
 		// stop moving (wait until tele-op starts)
 		myRobot.ArcadeDrive(0.0f, 0.0f);
-
 	} else if (autoSelected == autoSeeSaws) {
 		// autonomous code to go over the see-saws
 		///TODO:
@@ -114,7 +112,6 @@ void Robot::AutonomousInit(){
 		/// use the shooter to lower the see-saws (might not be possible)
 		/// drive over the see-saws
 		/// proceed to emulate the low-bar autonomous code.
-
 	} else { //default autonomous code
 		//Default Auto goes here
 	}
@@ -160,21 +157,13 @@ void Robot::TeleopPeriodic(){
 	/* uses hard-coded exponential brownout prevention strategy
 	myRobot.ArcadeDrive(
 		-((stickyval = ((stickyval + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2)) > 0) ?
-			sqrt(stickyval) * 0.75f : -sqrt(-stickyval) * 0.75f,
+				(stickyval = sqrt(stickyval / 2)) : -(stickyval = sqrt(stickyval / 2)),
 		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
-	);
-	*/
-
-	/*
-	myRobot.ArcadeDrive(
-		utils::expReduceBrownout(driveCtl.GetRawAxis(1), stickyval) * 0.75f,
-		utils::expReduceBrownout(driveCtl.GetRawAxis(0), stickxval) * 0.75f
-	);
-	*/
+	);*/
 
 	myRobot.ArcadeDrive(
-		utils::linReduceBrownout(0.05f, driveCtl.GetRawAxis(1), stickyval) * 0.75f,
-		utils::linReduceBrownout(0.1f, driveCtl.GetRawAxis(0), stickxval) * 0.75f
+		-utils::expReduceBrownout(driveCtl.GetRawAxis(1), stickyval),
+		-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stickxval)
 	);
 
 	static bool isHighGear = false;
