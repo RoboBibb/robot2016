@@ -55,7 +55,8 @@ namespace utils {
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
 
-	/// a linear approach to preventing brownout
+
+	/// a linear approach to preventing brownout (this has errors)
 	float linReduceBrownout(const float& limit, const float& current, float& past){
 		// limit = maximum ammount of chage per frame
 		// current = the most recent value coming from input
@@ -66,32 +67,30 @@ namespace utils {
 
 		float change = current - past;
 
-		if (current > 0) {// forward
+		if (change > 0) {// forward
 			if (change > limit) { // too much change
 				past += limit;
 				return past;
 			}
-			// nominal ammount of change
+			// nominal change
 			past = current;
 			return current;
 
 		} else { //reverse
 			if (change < -limit) { // too much change
-				past -= limit; //
+				past -= limit;
 				return past;
 			}
 			// nominal change
 			past = current;
 			return current;
 		}
-
 	}
 
-	// an expanential approach to preventing brownout
-	float expReduceBrownout(const float& current, float& past){
-		return -((((past + utils::removeGhost(current)) / 2) > 0) ?
-			sqrt(past = ((past + utils::removeGhost(current)) / 2)) * 0.75f :
-			-sqrt(past = -((past + utils::removeGhost(current)) / 2)) * 0.75f
+	// an exponential approach to preventing brownout
+	inline float expReduceBrownout(const float& current, float& past){
+		return (((past = ((past + utils::removeGhost(current)) / 2)) > 0) ?
+			sqrt(past / 2) : -sqrt(-(past / 2))
 		);
 	}
 
