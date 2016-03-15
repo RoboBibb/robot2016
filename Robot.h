@@ -49,13 +49,17 @@ private:
 };
 
 namespace utils {
-	/// remove 'ghost-input' resulting from inaccurate joysticks
+
+	/// remove 'ghost-input' resulting fqrom inaccurate joysticks
 	inline float removeGhost(const float& val){
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
 
 	/// a linear approach to preventing brownout
-	float linearReduceBrownout(const float& limit, const float& current, float& past){
+	float linReduceBrownout(const float& limit, const float& current, float& past){
+		// limit = maximum ammount of chage per frame
+		// current = the most recent value coming from input
+		// past = the value returned by this function in the last frame
 
 		// null or ghost input doesn't affect robot
 		if (removeGhost(current) == 0.0f) return 0.0f;
@@ -63,22 +67,24 @@ namespace utils {
 		float change = current - past;
 
 		if (current > 0) {// forward
-			if (change > limit) {
+			if (change > limit) { // too much change
 				past += limit;
 				return past;
-			} else if (change <= limit) {
-				past = current;
-				return current;
 			}
+			// nominal ammount of change
+			past = current;
+			return current;
+
 		} else { //reverse
-			if (change < -limit) {
-				past += limit;
+			if (change < -limit) { // too much change
+				past -= limit; //
 				return past;
-			} else if (change >= limit) {
-				past = current;
-				return current;
 			}
+			// nominal change
+			past = current;
+			return current;
 		}
+
 	}
 
 	// an expanential approach to preventing brownout
