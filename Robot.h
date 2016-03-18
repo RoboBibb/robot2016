@@ -45,7 +45,7 @@ private:
 		{ lw->Run(); }
 
 	void DisabledInit()
-		{ std::cout <<"\n\nGoodbye cruel world\n\t-Sir Kobe" <<std::endl; }
+		{ std::cout <<"\n\nI will be ready for my next summoning.\n\t-Sir Sophagus" <<std::endl; }
 };
 
 namespace utils {
@@ -58,12 +58,12 @@ namespace utils {
 
 	/// a linear approach to preventing brownout (this has errors)
 	float linReduceBrownout(const float& limit, const float& current, float& past){
-		// limit = maximum ammount of chage per frame
-		// current = the most recent value coming from input
-		// past = the value returned by this function in the last frame
+		/// limit = maximum ammount of chage per frame
+		/// current = the most recent value coming from input
+		/// past = the value returned by this function in the last frame
 
 		// null or ghost input doesn't affect robot
-		if (removeGhost(current) == 0.0f) return 0.0f;
+		if (utils::removeGhost(current) == 0.0f) return 0.0f;
 
 		float change = current - past;
 
@@ -90,7 +90,7 @@ namespace utils {
 	// an exponential approach to preventing brownout
 	inline float expReduceBrownout(const float& current, float& past){
 		return (((past = ((past + utils::removeGhost(current)) / 2)) > 0) ?
-			sqrt(past / 2) : -sqrt(-(past / 2))
+			sqrt(past) : -sqrt(-past)
 		);
 	}
 
