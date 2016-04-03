@@ -33,8 +33,8 @@ private:
 	// functions inherited from the IterativeRobot base-class:
 	void RobotInit(); //run once on startup
 
-	void AutonomousInit();
-	void AutonomousPeriodic();
+	void AutonomousInit(); // run once at the start of autonomous
+	void AutonomousPeriodic(); // run every ~20ms (cycle) during autonomous
 
 	void TeleopInit();
 	void TeleopPeriodic();
