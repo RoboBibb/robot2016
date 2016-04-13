@@ -3,9 +3,9 @@
 #define STOPPING_DISTANCE_INCHES 36.0 // 3 feet
 
 
-Robot::Robot() : //inline initializations:
+Robot::Robot() : // member initializations (constructor)
 	myRobot(0, 1), //left0, right1
-	gearShifter(0,1), shooterPiston(2,3), //solenoids
+	gearShifter(2, 3), //solenoids
 	driveCtl(0), shootCtl(1), //xbox360 controllers
 	airPump(0), //compressor
 	//shooterElevator1(2), shooterElevator2(3),//set elevation of the shooter
@@ -31,7 +31,7 @@ void Robot::RobotInit(){
 	CameraServer::GetInstance()->StartAutomaticCapture("cam0");// camera name in the web interface
 
 	// Dream big XD
-	std::cout <<"Hello world!\n\n I\'ve got a plan for world domination.\nXDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" <<std::endl;
+	std::cout <<"Hello world!\n\n I\'ve got a plan for world domination.\nXDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n" <<std::endl;
 }
 
 
@@ -140,7 +140,7 @@ void Robot::TeleopInit(){
 	airPump.SetClosedLoopControl(true);
 
 	//tele-op has started.
-	std::cout <<"Tele-op has started - Awaiting your command\n";
+	std::cout <<"\nTele-op has started - Awaiting your command\n";
 
 	//start out in low gear
 	gearShifter.Set(DoubleSolenoid::Value::kForward);
@@ -148,35 +148,53 @@ void Robot::TeleopInit(){
 	myRobot.SetSafetyEnabled(false);
 }
 
+inline float cube(float value){
+	float temp = value;
+	return value * value * temp;
+}
+
+
+#define CUBE(X) X * X * X // I'm lazy...
+
 void Robot::TeleopPeriodic(){
 
 	// joystick data from previous cycle
+	static struct coord {
+		float x = 0, y = 0;
+	} stick;
+
 	static float stickxval = 0, stickyval = 0;  // `static` keeps this local variable in memory
 
 	//drive the robot
 	/* uses hard-coded exponential brownout prevention strategy
 	myRobot.ArcadeDrive(
-		-((stickyval = ((stickyval + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2)) > 0) ?
-				(stickyval = sqrt(stickyval / 2)) : -(stickyval = sqrt(stickyval / 2)),
+		-((stick.y = ((stick.y + utils::removeGhost(driveCtl.GetRawAxis(1))) / 2)) > 0) ?
+				(stick.y = sqrt(stick.y / 2)) : -(stick.y = sqrt(stick.y / 2)),
 		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
 	);*/
 
+	/*This driving code worked during previous competitions
 	myRobot.ArcadeDrive(
-		-utils::expReduceBrownout(driveCtl.GetRawAxis(1), stickyval) * 0.9f,
-		-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stickxval) * 0.8f
-	);
+		-utils::expReduceBrownout(driveCtl.GetRawAxis(1), stick.y) * 0.9f,
+		-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stick.x) * 0.8f
+	);*/
 
+
+	myRobot.ArcadeDrive(
+		-(stick.y = CUBE((driveCtl.GetRawAxis(1) + stick.y) / 2)),
+		-(-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stick.x) * 0.8f)
+	);
 
 	static bool isHighGear = false;
 
 	//shift gears a==low b==high
 	if (driveCtl.GetRawButton(1) && isHighGear) { // a
 		gearShifter.Set(DoubleSolenoid::Value::kForward);
-		std::cout <<"Switched to LOW Gear <<GOOD" <<std::endl;
+		std::cout <<"Switched to LOW Gear <<default" <<std::endl;
 		isHighGear = !isHighGear;
 	} else if (driveCtl.GetRawButton(2) && !isHighGear) { // b
 		gearShifter.Set(DoubleSolenoid::Value::kReverse);
-		std::cout <<"Switched to HIGH Gear <<DANGER" <<std::endl;
+		std::cout <<"Switched to HIGH Gear >>" <<std::endl;
 		isHighGear = !isHighGear;
 	}
 
@@ -209,6 +227,7 @@ void Robot::TeleopPeriodic(){
 
 	// give some driver feedback:
 
+	// we still say kobe, even for the low goal
 	static bool kobe = true;
 
 	//print "Kobe!!" to the console when we shoot (for good luck)
@@ -219,23 +238,26 @@ void Robot::TeleopPeriodic(){
 		kobe = true;
 	}
 
-	// rumble both controllers when firing and when switching gears.  (aid in communication)
+	// rumble both controllers when firing and when switching gears (helps communication)
 	if (shootCtl.GetRawAxis(3) > 0.2f) { // rumble for fire (kobe)
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1.0f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1.0f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1.0f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1.0f);
 	} else if (driveCtl.GetRawButton(1) || driveCtl.GetRawButton(2)) { // rumble for gear-shift
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 1);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 1);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 1);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 1);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 1.0f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 1.0f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 1.0f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 1.0f);
 	} else { // no rumble
-		driveCtl.SetRumble(driveCtl.kLeftRumble, 0);
-		driveCtl.SetRumble(driveCtl.kRightRumble, 0);
-		shootCtl.SetRumble(shootCtl.kLeftRumble, 0);
-		shootCtl.SetRumble(shootCtl.kRightRumble, 0);
+		driveCtl.SetRumble(driveCtl.kLeftRumble, 0.0f);
+		driveCtl.SetRumble(driveCtl.kRightRumble, 0.0f);
+		shootCtl.SetRumble(shootCtl.kLeftRumble, 0.0f);
+		shootCtl.SetRumble(shootCtl.kRightRumble, 0.0f);
 	}
+
+	// repeat...
 }
 
+//
 START_ROBOT_CLASS(Robot)
