@@ -13,7 +13,7 @@ public:
 private:
     //robot parts:
     RobotDrive myRobot; // drive train
-	DoubleSolenoid gearShifter, shooterPiston; // piston used to switch gears
+	DoubleSolenoid gearShifter; // piston used to switch gears
 	Joystick driveCtl, shootCtl; // x-box controllers
 	Compressor airPump; // compressor
 	Talon /*shooterElevator1, shooterElevator2,*/ inAndOut;
@@ -33,8 +33,8 @@ private:
 	// functions inherited from the IterativeRobot base-class:
 	void RobotInit(); //run once on startup
 
-	void AutonomousInit(); // run once at the start of autonomous
-	void AutonomousPeriodic(); // run every ~20ms (cycle) during autonomous
+	void AutonomousInit();
+	void AutonomousPeriodic();
 
 	void TeleopInit();
 	void TeleopPeriodic();
@@ -68,28 +68,22 @@ namespace utils {
 		float change = current - past;
 
 		if (change > 0) {// forward
-			if (change > limit) { // too much change
-				past += limit;
-				return past;
-			}
+			if (change > limit) // too much change
+				return (past += limit);
 			// nominal change
-			past = current;
-			return current;
+			return (past = current);
 
 		} else { //reverse
-			if (change < -limit) { // too much change
-				past -= limit;
-				return past;
-			}
+			if (change < -limit) // too much change
+				return (past -= limit);
 			// nominal change
-			past = current;
-			return current;
+			return (past = current);
 		}
 	}
 
 	// an exponential approach to preventing brownout
 	inline float expReduceBrownout(const float& current, float& past){
-		return (((past = ((past + utils::removeGhost(current)) / 2)) > 0) ?
+		return (((past = ((past + utils::removeGhost(current)) / 2)) >= 0) ?
 			sqrt(past) : -sqrt(-past)
 		);
 	}
