@@ -148,22 +148,14 @@ void Robot::TeleopInit(){
 	myRobot.SetSafetyEnabled(false);
 }
 
-inline float cube(float value){
-	float temp = value;
-	return value * value * temp;
-}
-
-
 #define CUBE(X) X * X * X // I'm lazy...
 
 void Robot::TeleopPeriodic(){
 
 	// joystick data from previous cycle
-	static struct coord {
+	static struct coord { // `static` keeps this local variable in memory
 		float x = 0, y = 0;
 	} stick;
-
-	static float stickxval = 0, stickyval = 0;  // `static` keeps this local variable in memory
 
 	//drive the robot
 	/* uses hard-coded exponential brownout prevention strategy
@@ -173,18 +165,17 @@ void Robot::TeleopPeriodic(){
 		-utils::removeGhost(driveCtl.GetRawAxis(0)) * 0.75f
 	);*/
 
-	/*This driving code worked during previous competitions
 	myRobot.ArcadeDrive(
 		-utils::expReduceBrownout(driveCtl.GetRawAxis(1), stick.y) * 0.9f,
 		-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stick.x) * 0.8f
-	);*/
-
-
-	myRobot.ArcadeDrive(
-		-(stick.y = CUBE((driveCtl.GetRawAxis(1) + stick.y) / 2)),
-		-(-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stick.x) * 0.8f)
 	);
 
+/*
+	myRobot.ArcadeDrive(
+		-(stick.y = CUBE((driveCtl.GetRawAxis(1) + stick.y) / 2)) * 0.9f,
+		-(-utils::expReduceBrownout(driveCtl.GetRawAxis(0), stick.x) * 0.8f)
+	);
+*/
 	static bool isHighGear = false;
 
 	//shift gears a==low b==high
