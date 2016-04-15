@@ -59,11 +59,42 @@ void Robot::AutonomousInit(){
 
 	// disable safety on drive-train
 	myRobot.SetSafetyEnabled(false);
-
+	/*old autonomous code:
 	// drive forward for 2 seconds and stop
 	myRobot.Drive(0.75f, 0);
 	Wait(3);
 	myRobot.Drive(0.0f, 0);
+	*/
+
+	// jerk back-and-forth to knock shooter down
+	myRobot.Drive(0.75f, 0);
+	Wait(0.125);
+	myRobot.Drive(-0.75f, 0);
+	Wait(0.125);
+
+	// drive up to wall
+	myRobot.Drive(0.75f, 0);
+	Wait(3);
+
+	// stop
+	myRobot.Drive(0.0f, 0);
+
+	/*//:P
+
+	// turn
+	myRobot.Drive(0.0f, 0.5f);
+	Wait(0.25);
+
+	// drive up to goal
+	myRobot.Drive(0.75f, 0);
+	Wait(0.5);
+
+	// stop
+	myRobot.Drive(0.0f, 0);
+
+	// shoot
+	inAndOut.SetSpeed(1);
+	*/
 
 /* requires ultrasonic sensor
 	sonar.SetAutomaticMode(true); // turns on automatic mode
@@ -247,8 +278,7 @@ void Robot::TeleopPeriodic(){
 		shootCtl.SetRumble(shootCtl.kRightRumble, 0.0f);
 	}
 
-	// repeat...
 }
 
-//
+// make it happen
 START_ROBOT_CLASS(Robot)
