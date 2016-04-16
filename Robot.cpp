@@ -2,9 +2,8 @@
 
 #define STOPPING_DISTANCE_INCHES 36.0 // 3 feet
 
-
 Robot::Robot() : // member initializations (constructor)
-	myRobot(0, 1), //left0, right1
+	myRobot(1, 2), //left0, right1
 	gearShifter(2, 3), //solenoids
 	driveCtl(0), shootCtl(1), //xbox360 controllers
 	airPump(0), //compressor
@@ -73,8 +72,8 @@ void Robot::AutonomousInit(){
 	Wait(0.125);
 
 	// drive up to wall
-	myRobot.Drive(0.75f, 0);
-	Wait(3);
+	myRobot.Drive(1, 0); // full forward 1.5seconds
+	Wait(2);
 
 	// stop
 	myRobot.Drive(0.0f, 0);
@@ -238,7 +237,7 @@ void Robot::TeleopPeriodic(){
 	if (shootCtl.GetRawAxis(3) > shootCtl.GetRawAxis(2)) // shoot
 		inAndOut.SetSpeed(-1);
 	else if (shootCtl.GetRawAxis(3) < shootCtl.GetRawAxis(2)) // suck-in
-		inAndOut.SetSpeed(0.75f);
+		inAndOut.SetSpeed(0.9f);
 	else inAndOut.SetSpeed(0); // freeze
 
 	/* we removed the shooter piston
