@@ -11,22 +11,21 @@ public:
     Robot(); //constructor must be public
 
 private:
-    //robot parts:
-    RobotDrive myRobot; // drive train
+	//robot parts:
+	RobotDrive myRobot; // drive train
 	DoubleSolenoid gearShifter; // piston used to switch gears
-	Joystick driveCtl, shootCtl; // x-box controllers
+	Joystick driveCtl, shootCtl; // xbox360 controllers
 	Compressor airPump; // compressor
-	Talon /*shooterElevator1, shooterElevator2,*/ inAndOut;
-	//Ultrasonic sonar; //rnage-finder
-	//DigitalInput shooterUpLim, shooterDownLim, shooterInLim; // limit-switches
+	Talon inAndOut; // shooter motor
 	BuiltInAccelerometer accel; // accelerometer in the RoboRIO
 
-	//these are for the autonomous code chooser (smart-dashboard integration)
+
+	// these are for the [unused] autonomous code chooser (smart-dashboard integration)
 	LiveWindow* lw = LiveWindow::GetInstance();
-	SendableChooser *chooser = new SendableChooser();
+	SendableChooser* chooser = new SendableChooser();
 	const std::string autoStopAtObstacle = "stop at first vertical obstacle";
-	const std::string autoLowBar = "go under low bar (might not work)";
-	const std::string autoSeeSaws  = "go over see-saws (Don\'t use)";
+	const std::string autoLowBar = "go under low bar";
+	const std::string autoSeeSaws  = "go over see-saws";
 	std::string autoSelected;
 
 
@@ -39,6 +38,8 @@ private:
 	void TeleopInit();
 	void TeleopPeriodic();
 
+	// robot whines if I don't overload these.
+	// apparently it's okay if these are inline...
 	void TestInit()
 		{ std::cout <<"Testing mode enabled...\nCurrently doing: (NULL)" <<std::endl; }
 	void TestPeriodic()
@@ -46,8 +47,11 @@ private:
 
 	void DisabledInit()
 		{ std::cout <<"\n\nI will be ready for my next summoning.\n\t-Sir Sophagus" <<std::endl; }
+
+	
 };
 
+/// a few useful functions
 namespace utils {
 
 	/// remove 'ghost-input' resulting fqrom inaccurate joysticks
@@ -58,22 +62,22 @@ namespace utils {
 
 	/// a linear approach to preventing brownout (this has errors)
 	float linReduceBrownout(const float& limit, const float& current, float& past){
-		/// limit = maximum ammount of chage per frame
+		/// limit = maximum ammount of change per cycle
 		/// current = the most recent value coming from input
 		/// past = the value returned by this function in the last frame
 
-		// null or ghost input doesn't affect robot
+		// null or ghost input doesn't affect robot (also good for breaking)
 		if (utils::removeGhost(current) == 0.0f) return 0.0f;
 
 		float change = current - past;
 
-		if (change > 0) {// forward
+		if (change > 0) { // increase speed
 			if (change > limit) // too much change
 				return (past += limit);
 			// nominal change
 			return (past = current);
 
-		} else { //reverse
+		} else { // decrease speed
 			if (change < -limit) // too much change
 				return (past -= limit);
 			// nominal change
@@ -82,10 +86,9 @@ namespace utils {
 	}
 
 	// an exponential approach to preventing brownout
-	inline float expReduceBrownout(const float& current, float& past){
-		return (((past = ((past + utils::removeGhost(current)) / 2)) >= 0) ?
-			sqrt(past) : -sqrt(-past)
-		);
+	float expReduceBrownout(const float& current, float& past){
+		return ((past = ((past + utils::removeGhost(current)) / 2)) >= 0) ?
+			sqrt(past) : -sqrt(-past);
 	}
 
 }
