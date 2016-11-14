@@ -55,13 +55,13 @@ private:
 namespace utils {
 
 	/// remove 'ghost-input' resulting fqrom inaccurate joysticks
-	inline float removeGhost(const float& val){
+	inline float removeGhost(const float val){
 		return (val > 0.15f || val < -0.15f) ? val : 0.0f;
 	}
 
 
 	/// a linear approach to preventing brownout (this has errors)
-	float linReduceBrownout(const float& limit, const float& current, float& past){
+	float linReduceBrownout(const float limit, const float current, float& past){
 		/// limit = maximum ammount of change per cycle
 		/// current = the most recent value coming from input
 		/// past = the value returned by this function in the last frame
@@ -86,7 +86,7 @@ namespace utils {
 	}
 
 	// an exponential approach to preventing brownout
-	float expReduceBrownout(const float& current, float& past){
+	float expReduceBrownout(const float current, float& past){
 		return ((past = ((past + utils::removeGhost(current)) / 2)) >= 0) ?
 			sqrt(past) : -sqrt(-past);
 	}
